@@ -7,6 +7,10 @@
 #include <string.h>
 #include "unit.h"
 
+#ifndef CONFIG_DISABLE_GRAPHICS
+    #include "graphics.h"
+#endif
+
 int matrix_load(TMatrix_DCSR *matr, const char* filename) {
 	int size, nonz;
 	int i;
@@ -50,6 +54,13 @@ int matrix_load(TMatrix_DCSR *matr, const char* filename) {
 	fclose(fp);
 
 	return ERROR_NO_ERROR;
+}
+
+int matrix_portrait(TMatrix_DCSR *matr, const char *filename) {
+#ifndef CONFIG_DISABLE_GRAPHICS
+	return make_matrix_portrait(matr, filename)
+#endif
+	return ERROR_UNIMPLEMENTED;
 }
 
 void matrix_show(TMatrix_DCSR *matr, int flag_ordered) {

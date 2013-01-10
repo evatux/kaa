@@ -34,5 +34,7 @@ typedef float real;
 #define ERROR_NO_ERROR			0
 #define ERROR_MEMORY_ALLOCATION 	2
 #define ERROR_FILE_IO 			17
+#define ERROR_GRAPHICS			98
+#define ERROR_UNIMPLEMENTED		99
 
 #endif

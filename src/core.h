@@ -47,6 +47,8 @@ typedef struct {
 //	Matrix & Graph interface
 int  matrix_load(TMatrix_DCSR* /*matr*/, const char* /*filename*/);
 int  matrix_save(TMatrix_DCSR* /*matr*/, const char* /*filename*/);
+int  matrix_portrait(TMatrix_DCSR* /*matr*/, const char* /*filename*/);
+
 void matrix_show(TMatrix_DCSR* /*matr*/, int /*flag_ordered*/);
 void graph_show (TWGraph* /*gr*/);
 
