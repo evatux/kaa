@@ -1,0 +1,19 @@
+RCM README
+==============================
+
+The structure of this program should be the following:
+
+####################									//
+# Input Matrix CSR # -----------,						// MAIN
+####################			|						//
+								|
+								V
+						   ##############
+						   # Reordering #
+						   ##############
+								|
+								V
+################	  #####################		 ##########################
+# Prortait PNG # <--- # Output Matrix CSR # ---> # Cholesky Decomposition #
+################	  #####################		 ##########################
+
