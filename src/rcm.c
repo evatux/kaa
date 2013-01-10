@@ -231,7 +231,7 @@ graph_show(gr);
 }
 
 //	REORDERING: RCM. Reverse Cuthill-McKey
-int rcm(TMatrix_DCRS *matr) {
+int rcm(TMatrix_DCSR *matr) {
 	TWGraph gr;
 	int *perm, *invp;
 	int err = 0;

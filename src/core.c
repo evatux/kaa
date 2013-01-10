@@ -7,7 +7,7 @@
 #include <string.h>
 #include "unit.h"
 
-int matrix_load(TMatrix_DCRS *matr, const char* filename) {
+int matrix_load(TMatrix_DCSR *matr, const char* filename) {
 	int size, nonz;
 	int i;
 	real *diag;
@@ -52,7 +52,7 @@ int matrix_load(TMatrix_DCRS *matr, const char* filename) {
 	return ERROR_NO_ERROR;
 }
 
-void matrix_show(TMatrix_DCRS *matr, int flag_ordered) {
+void matrix_show(TMatrix_DCSR *matr, int flag_ordered) {
 	int i, j;
 	int ci = 0;
 	int flag;
@@ -106,7 +106,7 @@ void graph_show(TWGraph *gr) {
 	printf("\n============\n");
 }
 
-int build_graph(TWGraph *gr, TMatrix_DCRS *matr) {
+int build_graph(TWGraph *gr, TMatrix_DCSR *matr) {
 	int i, j, ci;
 	real *wvert, *wedge;
 	int  *xadj, *adjncy;
@@ -147,7 +147,7 @@ int build_graph(TWGraph *gr, TMatrix_DCRS *matr) {
 	return ERROR_NO_ERROR;
 }
 
-int build_matrix(TWGraph *gr, TMatrix_DCRS *matr, int flag_new) {
+int build_matrix(TWGraph *gr, TMatrix_DCSR *matr, int flag_new) {
 	int size, nonz;
 	int i, j, ci;
 	real *diag;

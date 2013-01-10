@@ -18,7 +18,7 @@ int  find_permutation(TWGraph* /*gr*/, int  /*root*/, int** /*_perm*/, int** /*_
 int  graph_reorder   (TWGraph* /*gr*/, int* /*perm*/, int* /*invp*/);
 
 //	RCM
-int  rcm(TMatrix_DCRS* /*matr*/);
+int  rcm(TMatrix_DCSR* /*matr*/);
 
 #endif
 

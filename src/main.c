@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
 	if (argc == 3) sscanf(argv[2], "%d", &flag);
 //	printf("flag = %d\n",flag);
 
-	TMatrix_DCRS matr;
+	TMatrix_DCSR matr;
 	matrix_load(&matr, argv[1]);
 	
 	if ( flag & 1 ) matrix_show(&matr, 1);

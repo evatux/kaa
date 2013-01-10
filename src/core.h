@@ -31,7 +31,7 @@ typedef struct {
 	int  *row_ptr;
 	int  nonz;
 	int  size;
-} TMatrix_CRS;
+} TMatrix_CSR;
 
 typedef struct {
 	real *diag;
@@ -42,16 +42,16 @@ typedef struct {
 	
 	int  nonz;
 	int  size;
-} TMatrix_DCRS;
+} TMatrix_DCSR;
 
 //	Matrix & Graph interface
-int  matrix_load(TMatrix_DCRS* /*matr*/, const char* /*filename*/);
-int  matrix_save(TMatrix_DCRS* /*matr*/, const char* /*filename*/);
-void matrix_show(TMatrix_DCRS* /*matr*/, int /*flag_ordered*/);
+int  matrix_load(TMatrix_DCSR* /*matr*/, const char* /*filename*/);
+int  matrix_save(TMatrix_DCSR* /*matr*/, const char* /*filename*/);
+void matrix_show(TMatrix_DCSR* /*matr*/, int /*flag_ordered*/);
 void graph_show (TWGraph* /*gr*/);
 
 //	Matrix <--> Graph interface
-int  build_graph (TWGraph* /*gr*/, TMatrix_DCRS* /*matr*/);
-int  build_matrix(TWGraph* /*gr*/, TMatrix_DCRS* /*matr*/, int /*flag_new*/);
+int  build_graph (TWGraph* /*gr*/, TMatrix_DCSR* /*matr*/);
+int  build_matrix(TWGraph* /*gr*/, TMatrix_DCSR* /*matr*/, int /*flag_new*/);
 
 #endif
