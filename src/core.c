@@ -58,9 +58,18 @@ int matrix_load(TMatrix_DCSR *matr, const char* filename) {
 
 int matrix_portrait(TMatrix_DCSR *matr, const char *filename) {
 #ifndef CONFIG_DISABLE_GRAPHICS
-	return make_matrix_portrait(matr, filename)
+	return make_matrix_portrait(matr, filename);
 #endif
 	return ERROR_UNIMPLEMENTED;
+}
+
+int matrix_portrait_pattern(TMatrix_DCSR *matr, const char *pattern, const char *suffix)
+{
+	char str[MAX_FILENAME_LENGTH];
+	strcpy(str, pattern);
+	strcat(str, suffix);
+	strcat(str, ".png");
+	return matrix_portrait(matr, str);
 }
 
 void matrix_show(TMatrix_DCSR *matr, int flag_ordered) {

@@ -153,8 +153,8 @@ int make_matrix_portrait(TMatrix_DCSR *matr, const char *filename)
 {
     bitmap_t portrait;
 	pixel_t *pixel;
-    int x;
-    int y;
+    int x, y;
+    int size;
 
     size = (matr->size > MAX_PNG_SIZE) ? MAX_PNG_SIZE : matr->size;
     portrait.width  = size;

@@ -13,6 +13,7 @@
 #endif
 
 #define PRINT_ZEROES
+#define MAX_FILENAME_LENGTH 1024
 
 /*
  * Notation: 
@@ -36,5 +37,15 @@ typedef float real;
 #define ERROR_FILE_IO 			17
 #define ERROR_GRAPHICS			98
 #define ERROR_UNIMPLEMENTED		99
+
+#define PRINT_ERROR_MESSAGE(x)		\
+	{				\
+		switch(x) {		\
+			case 2 : fprintf(stderr, "error(%d): memory allocation error\n", (x)); break;	\
+			case 17: fprintf(stderr, "error(%d): file input/output error\n", (x)); break;	\
+			case 98: fprintf(stderr, "error(%d): graphics error\n"         , (x)); break;	\
+			case 99: fprintf(stderr, "error(%d): unimplemented feature\n"  , (x)); break;	\
+		}			\
+	}
 
 #endif

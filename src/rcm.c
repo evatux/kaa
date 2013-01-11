@@ -94,7 +94,7 @@ int find_periphery(TWGraph *gr, int *per) {
 	return ERROR_NO_ERROR;
 }
 
-int find_permutation(TWGraph *gr, int root, int** _perm, int** _invp) {
+int find_permutation(TWGraph *gr, int root, int** _perm, int** _invp, real threshold) {
 	// Making permututation vector
 	//
 	// v-th vertex comes perm[v] 
@@ -132,7 +132,7 @@ printf("[debug(1)]{find_permutation}: root = %d\n", root);
 
 		for (i = gr->xadj[v]; i < gr->xadj[v+1]; i++) {
 			g = gr->adjncy[i];
-			if ( invp[g] < 0 && FABS(gr->wvert[g]) < EPS_THRESHOLD ) {
+			if ( invp[g] < 0 && FABS(gr->wvert[g]) < threshold ) {
 				stack_push(&queue, v);
 				v = g;
 				break;
@@ -231,7 +231,7 @@ graph_show(gr);
 }
 
 //	REORDERING: RCM. Reverse Cuthill-McKey
-int rcm(TMatrix_DCSR *matr) {
+int rcm(TMatrix_DCSR *matr, real threshold) {
 	TWGraph gr;
 	int *perm, *invp;
 	int err = 0;
@@ -246,13 +246,13 @@ printf("[debug(0)]{rcm}: graph_builder\n");
 printf("[debug(0)]{rcm} find_periphery\n");
 #endif
 	int root;
-	err = find_periphery(&gr, &root);	 				// RCM starts here (root vertex)
+	err = find_periphery(&gr, &root);	 			// RCM starts here (root vertex)
 	if ( err != ERROR_NO_ERROR ) ERROR_MESSAGE("rcm: find_periphery failed", err);
 
 #ifdef _DEBUG_LEVEL_0
 printf("[debug(0)]{rcm} find_permutation\n");
 #endif
-	err = find_permutation(&gr, root, &perm, &invp);	// <-- reordering
+	err = find_permutation(&gr, root, &perm, &invp, threshold);	// <-- reordering
 	if ( err != ERROR_NO_ERROR ) ERROR_MESSAGE("rcm: find_permutation failed", err);
 
 #ifdef _DEBUG_LEVEL_0
@@ -278,3 +278,10 @@ printf("[debug(0)]{rcm} matrix_builder\n");
 	return ERROR_NO_ERROR;
 }
 
+int rcm_mod(TMatrix_DCSR *matr) {
+	return rcm(matr, EPS_THRESHOLD);
+}
+
+int rcm_orig(TMatrix_DCSR *matr) {
+	return rcm(matr, 0);
+}

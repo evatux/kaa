@@ -2,15 +2,16 @@ CC = gcc
 DEPS = unit.h rcm.h
 CFLAGS += -std=c99 -I.
 #LIBS = -fopenmp
+PNGLIBS = -lpng
 
 ifeq ($(DEBUG),1)
 CFLAGS += -D_DEBUG
 endif
 
-all: a.out clean
+all: rcm.out
 
-a.out: main.o rcm.o unit.o
-	$(CC) $^ $(LIBS) -o $@
+rcm.out: main.o rcm.o core.o graphics.o unit.o
+	$(CC) $^ $(LIBS) $(PNGLIBS) -o ../bin/$@
 
 %.o: %.c $(DEPS)
 	$(CC) -c $< $(CFLAGS) $(LIBS) -o $@
