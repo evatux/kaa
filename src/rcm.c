@@ -60,8 +60,8 @@ int find_periphery(TWGraph *gr, int *per) {
 			for (i = xadj_start; i < xadj_end; i++) {
 				s = adjncy[i];
 				if (!vertex_level[s]) {
-					viewed++;						// one more vertex is viewed now
-					vertex_level[s] = level + 1;	// increasing level
+					viewed++;				// one more vertex is viewed now
+					vertex_level[s] = level + 1;		// increasing level
 					queue_push(&queue, s);			// will 
 				}
 			}
@@ -72,7 +72,7 @@ int find_periphery(TWGraph *gr, int *per) {
 					max_vertex    = g;
 					min_neighbour = xadj_end- xadj_start;
 				}
-													// but with minimal number of neighbours
+										// but with minimal number of neighbours
 				if ( (level == max_level) && (xadj_end - xadj_start < min_neighbour) ) {
 					max_vertex = g;
 					min_neighbour = xadj_end - xadj_start;
@@ -80,12 +80,12 @@ int find_periphery(TWGraph *gr, int *per) {
 			}
 		}
 #ifdef _DEBUG_LEVEL_1
-		printf("[debug(1)]{find_periphery} current max vertex: %d [level:%d]\n", max_vertex, max_level);
+		printf("[debug(1)]{find_periphery}: current max vertex: %d [level:%d]\n", max_vertex, max_level);
 #endif
 	} while (max_level > glob_max_level);			// repeat until glob_max_level isn't changed
 
 #ifdef _DEBUG_LEVEL_1
-	printf("[debug(1)]{find_periphery} glob_max_level: %d, periphery: %d\n", glob_max_level, glob_max_vertex);
+	printf("[debug(1)]{find_periphery}: glob_max_level: %d, periphery: %d\n", glob_max_level, glob_max_vertex);
 #endif
 
 	free(vertex_level);
@@ -179,7 +179,7 @@ int graph_reorder(TWGraph *gr, int *perm, int *invp) {
 	int  i, j, ci, g;
 
 #ifdef _DEBUG_LEVEL_1
-printf("[debug(1)]{graph_reorder} INPUT graph\n");
+printf("[debug(1)]{graph_reorder}: INPUT graph\n");
 graph_show(gr);
 #endif
 
@@ -213,7 +213,7 @@ graph_show(gr);
 	xadj[i] = ci;								// xadj[size] = nonz
 
 #ifdef _DEBUG_LEVEL_1
-printf("[debug(1)]{graph_reorder} REORDERED graph\n");
+printf("[debug(1)]{graph_reorder}: REORDERED graph\n");
 graph_show(gr);
 #endif
 
@@ -243,20 +243,20 @@ printf("[debug(0)]{rcm}: graph_builder\n");
 	if ( err != ERROR_NO_ERROR ) ERROR_MESSAGE("rcm: graph_builder failed", err);
 
 #ifdef _DEBUG_LEVEL_0
-printf("[debug(0)]{rcm} find_periphery\n");
+printf("[debug(0)]{rcm}: find_periphery\n");
 #endif
 	int root;
 	err = find_periphery(&gr, &root);	 			// RCM starts here (root vertex)
 	if ( err != ERROR_NO_ERROR ) ERROR_MESSAGE("rcm: find_periphery failed", err);
 
 #ifdef _DEBUG_LEVEL_0
-printf("[debug(0)]{rcm} find_permutation\n");
+printf("[debug(0)]{rcm}: find_permutation\n");
 #endif
 	err = find_permutation(&gr, root, &perm, &invp, threshold);	// <-- reordering
 	if ( err != ERROR_NO_ERROR ) ERROR_MESSAGE("rcm: find_permutation failed", err);
 
 #ifdef _DEBUG_LEVEL_0
-printf("[debug(0)]{rcm} graph_reoder\n");
+printf("[debug(0)]{rcm}: graph_reoder\n");
 #endif
 	err = graph_reorder(&gr, perm, invp);
 	if ( err != ERROR_NO_ERROR ) ERROR_MESSAGE("rcm: graph_reorder failed", err);
@@ -265,7 +265,7 @@ printf("[debug(0)]{rcm} graph_reoder\n");
 	free(invp);
 
 #ifdef _DEBUG_LEVEL_0
-printf("[debug(0)]{rcm} matrix_builder\n");
+printf("[debug(0)]{rcm}: matrix_builder\n");
 #endif
 	err = build_matrix(&gr, matr, 0);
 	if ( err != ERROR_NO_ERROR ) ERROR_MESSAGE("rcm: matrix_builder failed", err);
