@@ -13,9 +13,8 @@
 #define EPS_THRESHOLD			1
 
 //	RCM subroutines
-int  find_periphery  (TWGraph* /*gr*/, int* /*per*/);
-int  find_permutation(TWGraph* /*gr*/, int  /*root*/, int** /*_perm*/, int** /*_invp*/, real /*threshold*/);
-int  graph_reorder   (TWGraph* /*gr*/, int* /*perm*/, int* /*invp*/);
+int  find_permutation(TWGraph* /*gr*/, int** /*_perm*/, int** /*_invp*/, real /*threshold*/);
+int  graph_reorder   (TWGraph* /*gr*/, int*  /* perm*/, int*  /* invp*/);
 
 //	RCM
 int  rcm     (TMatrix_DCSR* /*matr*/, real /*threshold*/);

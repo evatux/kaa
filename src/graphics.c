@@ -33,8 +33,8 @@ static pixel_t * matrix_pixel_at (bitmap_t *bitmap, int row, int col, int matr_s
 {
 	if (matr_size > MAX_PNG_SIZE) { // use scaling
 		int x, y;
-		x = (int) ( (double)col/(double)matr_size );
-		y = (int) ( (double)row/(double)matr_size );
+		x = (int) ( (double)(col * MAX_PNG_SIZE)/(double)matr_size );
+		y = (int) ( (double)(row * MAX_PNG_SIZE)/(double)matr_size );
 		return bitmap->pixels + bitmap->width * y + x;
 	} else {
 		return bitmap->pixels + bitmap->width * row + col;

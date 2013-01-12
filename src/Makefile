@@ -8,6 +8,10 @@ ifeq ($(DEBUG),1)
 CFLAGS += -D_DEBUG
 endif
 
+ifeq ($(Wall),1)
+CFLAGS += -Wall
+endif
+
 all: rcm.out
 
 rcm.out: main.o rcm.o core.o graphics.o unit.o
