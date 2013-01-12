@@ -56,20 +56,20 @@ int matrix_load(TMatrix_DCSR *matr, const char* filename) {
 	return ERROR_NO_ERROR;
 }
 
-int matrix_portrait(TMatrix_DCSR *matr, const char *filename) {
+int matrix_portrait(TMatrix_DCSR *matr, const char *filename, real threshold) {
 #ifndef CONFIG_DISABLE_GRAPHICS
-	return make_matrix_portrait(matr, filename);
+	return make_matrix_portrait_color(matr, filename, threshold);
 #endif
 	return ERROR_UNIMPLEMENTED;
 }
 
-int matrix_portrait_pattern(TMatrix_DCSR *matr, const char *pattern, const char *suffix)
+int matrix_portrait_pattern(TMatrix_DCSR *matr, const char *pattern, const char *suffix, real threshold)
 {
 	char str[MAX_FILENAME_LENGTH];
 	strcpy(str, pattern);
 	strcat(str, suffix);
 	strcat(str, ".png");
-	return matrix_portrait(matr, str);
+	return matrix_portrait(matr, str, threshold);
 }
 
 void matrix_show(TMatrix_DCSR *matr, int flag_ordered) {

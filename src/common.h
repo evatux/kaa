@@ -7,6 +7,8 @@
 * It should be included in every source file
 ***************************************************/
 
+#include <math.h>
+
 #ifdef  _DEBUG
 #define _DEBUG_LEVEL_0
 #define _DEBUG_LEVEL_1

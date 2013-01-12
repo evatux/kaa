@@ -139,17 +139,18 @@ static int pix(int value, int max)
     return (int) (256.0 *((double) (value)/(double) max));
 }
 
-/* Simply put black(1) or white(0) point */
-static void put_point(pixel_t *pixel, int value) 
+static void put_point(pixel_t *pixel, int color) 
 {
-    pixel->red = pixel->green = pixel->blue = (value == 1) ? 0 : 255;
+    pixel->red   = 255 * (CL_RED   & color);
+	pixel->green = 255 * (CL_GREEN & color);
+	pixel->blue  = 255 * (CL_BLUE  & color);
 }
 
 // =============================================
 // 		external subroutines
 // =============================================
 
-int make_matrix_portrait(TMatrix_DCSR *matr, const char *filename) 
+int make_matrix_portrait_color(TMatrix_DCSR *matr, const char *filename, real threshold) 
 {
     bitmap_t portrait;
 	pixel_t *pixel;
@@ -164,7 +165,7 @@ int make_matrix_portrait(TMatrix_DCSR *matr, const char *filename)
 
 	for (y = 0; y < portrait.height; y++) {
         for (x = 0; x < portrait.width; x++) {
-			put_point(pixel_at(&portrait, x, y), 0);
+			put_point(pixel_at(&portrait, x, y), CL_WHITE);
         }
     }
 
@@ -173,11 +174,11 @@ int make_matrix_portrait(TMatrix_DCSR *matr, const char *filename)
 
 	for (i = 0; i < matr->size; i++) {
 		for (j = 0; j < matr->size; j++) {
-			if ( i == j ) put_point(matrix_pixel_at(&portrait, i, j, matr->size), 1);
+			if ( i == j ) put_point(matrix_pixel_at(&portrait, i, j, matr->size), (FABS(matr->diag[i]) < threshold)?CL_RED:CL_BLACK);
 			else {
 				for (ci = matr->row_ptr[i]; ci < matr->row_ptr[i+1]; ci++)
 					if ( matr->col_ind[ci] == j ) {
-						put_point(matrix_pixel_at(&portrait, i, j, matr->size), 1);
+						put_point(matrix_pixel_at(&portrait, i, j, matr->size), CL_BLACK);
 //						printf("%4.1f ", matr->val[ci]);
 						break;
 					}
@@ -188,4 +189,9 @@ int make_matrix_portrait(TMatrix_DCSR *matr, const char *filename)
     if (save_png_to_file (&portrait, filename) != 0) return ERROR_GRAPHICS;
 
     return ERROR_NO_ERROR;
+}
+
+int make_matrix_portrait(TMatrix_DCSR *matr, const char *filename)
+{
+	return make_matrix_portrait_color(matr, filename, 0.);
 }
