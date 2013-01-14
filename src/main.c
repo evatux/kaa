@@ -108,8 +108,8 @@ int main(int argc, char** argv) {
 	if (config.make_original) matrix_load(&matr_orig, config.matr_in_file);
 	if (config.make_modified) matrix_load(&matr_mod , config.matr_in_file);
 
-	if (config.make_original)	fprintf(inf, "Source matrix: [size: %d], [nonz: %d], [band: %d]\n", matr_orig.size, matr_orig.nonz, matrix_get_band(&matr_orig));
-	else						fprintf(inf, "Source matrix: [size: %d], [nonz: %d], [band: %d]\n", matr_mod.size , matr_mod.nonz , matrix_get_band(&matr_mod ));
+	if (config.make_original)	fprintf(inf, "Source matrix:       [size: %d], [nonz: %d], [band: %d]\n", matr_orig.size, matr_orig.nonz, matrix_get_band(&matr_orig));
+	else						fprintf(inf, "Source matrix:       [size: %d], [nonz: %d], [band: %d]\n", matr_mod.size , matr_mod.nonz , matrix_get_band(&matr_mod ));
 
 	// original matrix
 	if ( config.portrait_file != NULL ) {
