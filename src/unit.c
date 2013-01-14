@@ -73,4 +73,3 @@ int queue_pop (TQueue* queue, int *val_ptr) {
 	free(qu);
 	return 1;
 }
-

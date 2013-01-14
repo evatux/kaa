@@ -18,4 +18,3 @@ void queue_push(TQueue* /*queue*/, int  /*val*/    );
 int  queue_pop (TQueue* /*queue*/, int* /*val_ptr*/);
 
 #endif
-

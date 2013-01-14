@@ -34,7 +34,7 @@ done
 
 # Simple matricies
 if [ $SIMPLE -eq 1 ]; then
-	EPS=0.1
+	EPS=1
 	for simp_matrix in `cat ../input2/_simp.list`; do 
 		./rcm.out ../input2/${simp_matrix}.csr			\
 			--info_file ../output2/${simp_matrix}.log	\

@@ -22,4 +22,3 @@ int  rcm_mod (TMatrix_DCSR* /*matr*/);
 int  rcm_orig(TMatrix_DCSR* /*matr*/);
 
 #endif
-

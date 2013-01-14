@@ -72,6 +72,28 @@ int matrix_portrait_pattern(TMatrix_DCSR *matr, const char *pattern, const char 
 	return matrix_portrait(matr, str, threshold);
 }
 
+void matrix_simp_show(TMatrix_Simple *matr) {
+	int i, j;
+	int size = matr->size;
+	for (i = 0; i < size; i++) {
+		for (j = 0; j < size; j++) {
+			if ( i == j )
+				printf("%4.1f ", matr->val[i*size+j]);
+			else
+				if ( matr->val[i*size+j] != 0. )
+					printf("%4.1f ", matr->val[i*size+j]);
+				else
+#ifdef PRINT_ZEROES
+					printf("%4.1f ", 0.0);
+#else
+					printf("     ");
+#endif
+		}
+		printf("\n");
+	}
+	printf("\n");
+}
+
 void matrix_show(TMatrix_DCSR *matr, int flag_ordered) {
 	int i, j;
 	int ci = 0;
@@ -126,6 +148,12 @@ void graph_show(TWGraph *gr) {
 	printf("\n============\n");
 }
 
+void matrix_simp_destroy(TMatrix_Simple *matr)
+{
+	if (!matr) return;
+	if (matr->val) free(matr->val);
+}
+
 void matrix_destroy(TMatrix_DCSR *matr)
 {
 	if (!matr) return;
@@ -133,12 +161,6 @@ void matrix_destroy(TMatrix_DCSR *matr)
 	if (matr->val ) 	free(matr->val    );
 	if (matr->col_ind)	free(matr->col_ind);
 	if (matr->row_ptr)	free(matr->row_ptr);
-}
-
-void matrix_simp_destroy(TMatrix_Simple *matr)
-{
-	if (!matr) return;
-	if (matr->val) free(matr->val);
 }
 
 void graph_destroy(TWGraph *gr)
@@ -165,7 +187,8 @@ int matrix_get_band(TMatrix_DCSR *matr)
 	return band;
 }
 
-int build_graph(TWGraph *gr, TMatrix_DCSR *matr) {
+int build_graph(TWGraph *gr, TMatrix_DCSR *matr) 
+{
 	int i, j, ci;
 	real *wvert, *wedge;
 	int  *xadj, *adjncy;
@@ -206,7 +229,8 @@ int build_graph(TWGraph *gr, TMatrix_DCSR *matr) {
 	return ERROR_NO_ERROR;
 }
 
-int build_matrix(TWGraph *gr, TMatrix_DCSR *matr, int flag_new) {
+int build_matrix(TWGraph *gr, TMatrix_DCSR *matr, int flag_new) 
+{
 	int size, nonz;
 	int i, j, ci;
 	real *diag;
@@ -255,6 +279,36 @@ int build_matrix(TWGraph *gr, TMatrix_DCSR *matr, int flag_new) {
 	return ERROR_NO_ERROR;
 }
 
+int matrix_copy(TMatrix_DCSR *src, TMatrix_DCSR *dst)
+{
+	int size, nonz;
+	int i;
+
+	size = dst->size = src->size;
+	nonz = dst->nonz = src->nonz;
+	dst->diag    = (real*)malloc(sizeof(real)*size);
+	dst->val     = (real*)malloc(sizeof(real)*nonz);
+	dst->col_ind = ( int*)malloc(sizeof( int)*nonz);
+	dst->row_ptr = ( int*)malloc(sizeof( int)*(size+1));
+
+	if ( NULL == dst->diag || NULL == dst->val || NULL == dst->col_ind || NULL == dst->row_ptr ) {
+		if (dst->diag   ) free(dst->diag   );
+		if (dst->val    ) free(dst->val    );
+		if (dst->col_ind) free(dst->col_ind);
+		if (dst->row_ptr) free(dst->row_ptr);
+
+		fprintf(stderr, "error [matrix_copy]: memory allocation error\n");
+		return ERROR_MEMORY_ALLOCATION;
+	}
+
+	for (i = 0; i < size; ++i) dst->diag[i]		= src->diag[i];
+	for (i = 0; i < nonz; ++i) dst->val[i]		= src->val[i];
+	for (i = 0; i < nonz; ++i) dst->col_ind[i]	= src->col_ind[i];
+	for (i = 0; i <= size; ++i) dst->row_ptr[i]	= src->row_ptr[i];
+
+	return ERROR_NO_ERROR;
+}
+
 int matrix_convert_simp2dcsr(TMatrix_Simple *src, TMatrix_DCSR *dst)
 {
 	int i, j, size, nonz;
@@ -271,7 +325,7 @@ int matrix_convert_simp2dcsr(TMatrix_Simple *src, TMatrix_DCSR *dst)
 	for (i = 0; i < size; ++i)
 		for (j = 0; j < size; ++j)
 			if ( (i != j) && (src->val[i*size + j] != 0.) ) nonz++;
-
+	
 	dst->nonz    = nonz;
 	dst->val     = (real*)malloc(sizeof(real)*nonz);
 	dst->col_ind = ( int*)malloc(sizeof( int)*nonz);
@@ -304,7 +358,7 @@ int matrix_convert_simp2dcsr(TMatrix_Simple *src, TMatrix_DCSR *dst)
 
 int matrix_convert_dcsr2simp(TMatrix_DCSR *src, TMatrix_Simple *dst)
 {
-	int i, j, nonz, size;
+	int i, j, size;
 	size = dst->size = src->size;
 
 	dst->val = (real*)malloc(sizeof(real)*size*size);
@@ -313,17 +367,14 @@ int matrix_convert_dcsr2simp(TMatrix_DCSR *src, TMatrix_Simple *dst)
 		return ERROR_MEMORY_ALLOCATION;
 	}
 
-	for (i = 0; i < size; ++i) dst->val[i*size+i] = src->diag[i];
+	for (i = 0; i < size; ++i) {
+		for (j = 0; j < size; ++j) dst->val[i*size+j] = 0.;
 
-	nonz = 0;
-	for (i = 0; i < size; ++i)
-		for (j = 0; j < size; ++j) {
-			if ( i == j ) continue;
-			if ( (j == src->col_ind[nonz]) && (nonz >= src->row_ptr[i]) && (nonz < src->row_ptr[i+1]) )
-				dst->val[i*size+j] = src->val[nonz++];
-			else dst->val[i*size+j] = 0.;
+		for (j = src->row_ptr[i]; j < src->row_ptr[i+1]; ++j) {
+			dst->val[i*size+src->col_ind[j]] = src->val[j];
 		}
+	}
+	for (i = 0; i < size; ++i) dst->val[i*size+i] = src->diag[i];
 
 	return ERROR_NO_ERROR;
 }
-
