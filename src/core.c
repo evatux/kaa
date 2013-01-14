@@ -126,6 +126,45 @@ void graph_show(TWGraph *gr) {
 	printf("\n============\n");
 }
 
+void matrix_destroy(TMatrix_DCSR *matr)
+{
+	if (!matr) return;
+	if (matr->diag) 	free(matr->diag   );
+	if (matr->val ) 	free(matr->val    );
+	if (matr->col_ind)	free(matr->col_ind);
+	if (matr->row_ptr)	free(matr->row_ptr);
+}
+
+void matrix_simp_destroy(TMatrix_Simple *matr)
+{
+	if (!matr) return;
+	if (matr->val) free(matr->val);
+}
+
+void graph_destroy(TWGraph *gr)
+{
+	if (!gr) return;
+	if (gr->wvert )	free(gr->wvert );
+	if (gr->wedge )	free(gr->wedge );
+	if (gr->adjncy)	free(gr->adjncy);
+	if (gr->xadj  )	free(gr->xadj  );
+	
+
+}
+
+int matrix_get_band(TMatrix_DCSR *matr)
+{
+	int i, ci = 0;
+	int band = 0;
+
+	for (i = 0; i < matr->size; ++i) {
+		for (ci = matr->row_ptr[i]; ci < matr->row_ptr[i+1]; ++ci) {
+			if ( band < (i - matr->col_ind[ci]) ) band = i - matr->col_ind[ci];
+		}
+	}
+	return band;
+}
+
 int build_graph(TWGraph *gr, TMatrix_DCSR *matr) {
 	int i, j, ci;
 	real *wvert, *wedge;
@@ -215,3 +254,76 @@ int build_matrix(TWGraph *gr, TMatrix_DCSR *matr, int flag_new) {
 
 	return ERROR_NO_ERROR;
 }
+
+int matrix_convert_simp2dcsr(TMatrix_Simple *src, TMatrix_DCSR *dst)
+{
+	int i, j, size, nonz;
+	size = dst->size = src->size;
+
+	dst->diag = (real*)malloc(sizeof(real)*size);
+	if (NULL == dst->diag) {
+		fprintf(stderr, "error: [matrix_convert_simp2dcsr]: memory allocation error\n");
+		return ERROR_MEMORY_ALLOCATION;
+	}
+	for (i = 0; i < size; ++i) dst->diag[i] = src->val[i*size + i];
+
+	nonz = 0;
+	for (i = 0; i < size; ++i)
+		for (j = 0; j < size; ++j)
+			if ( (i != j) && (src->val[i*size + j] != 0.) ) nonz++;
+
+	dst->nonz    = nonz;
+	dst->val     = (real*)malloc(sizeof(real)*nonz);
+	dst->col_ind = ( int*)malloc(sizeof( int)*nonz);
+	dst->row_ptr = ( int*)malloc(sizeof( int)*(size+1));
+
+	if ( NULL == dst->val || NULL == dst->col_ind || NULL == dst->row_ptr ) {
+		if (dst->val    ) free(dst->val    );
+		if (dst->col_ind) free(dst->col_ind);
+		if (dst->row_ptr) free(dst->row_ptr);
+
+		fprintf(stderr, "error [matrix_convert_simp2dcsr]: memory allocation error\n");
+		return ERROR_MEMORY_ALLOCATION;
+	}
+
+	nonz = 0;
+	dst->row_ptr[0] = 0;
+	for (i = 0; i < size; ++i) {
+		for (j = 0; j < size; ++j) {
+			if ( (i != j) && (src->val[i*size+j] != 0.) ) {
+				dst->val[nonz]     = src->val[i*size+j];
+				dst->col_ind[nonz] = j;
+				nonz++;
+			}
+		}
+		dst->row_ptr[i+1] = nonz;
+	}
+
+	return ERROR_NO_ERROR;
+}
+
+int matrix_convert_dcsr2simp(TMatrix_DCSR *src, TMatrix_Simple *dst)
+{
+	int i, j, nonz, size;
+	size = dst->size = src->size;
+
+	dst->val = (real*)malloc(sizeof(real)*size*size);
+	if ( NULL == dst->val ) {
+		fprintf(stderr, "error: [matrix_convert_dcsr2simp]: memory allocation error\n");
+		return ERROR_MEMORY_ALLOCATION;
+	}
+
+	for (i = 0; i < size; ++i) dst->val[i*size+i] = src->diag[i];
+
+	nonz = 0;
+	for (i = 0; i < size; ++i)
+		for (j = 0; j < size; ++j) {
+			if ( i == j ) continue;
+			if ( (j == src->col_ind[nonz]) && (nonz >= src->row_ptr[i]) && (nonz < src->row_ptr[i+1]) )
+				dst->val[i*size+j] = src->val[nonz++];
+			else dst->val[i*size+j] = 0.;
+		}
+
+	return ERROR_NO_ERROR;
+}
+

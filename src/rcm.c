@@ -314,10 +314,7 @@ printf("[debug(0)]{rcm}: matrix_builder\n");
 	err = build_matrix(&gr, matr, 0);
 	if ( err != ERROR_NO_ERROR ) ERROR_MESSAGE("rcm: matrix_builder failed", err);
 
-	free(gr.wedge);
-	free(gr.adjncy);
-	free(gr.xadj);
-	free(gr.wvert);
+	graph_destroy(&gr);
 
 	return ERROR_NO_ERROR;
 }

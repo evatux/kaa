@@ -2,18 +2,31 @@ RCM README
 ==============================
 
 The structure of this program should be the following:
+B ~ A^-1 or (A + D{0,eps})^-1
+M - max{lambda(BA)}
+m - min{lambda(BA)}
 
 ####################									//
 # Input Matrix CSR # -----------,						// MAIN
 ####################			|						//
 								|
 								V
-						   ##############
-						   # Reordering #
-						   ##############
-								|
-								V
+						   ##############			################
+						   # Reordering #			# Portrait PNG #
+						   ##############			#################
+								|							^
+								V							|
 ################	  #####################		 ##########################
 # Prortait PNG # <--- # Output Matrix CSR # ---> # Cholesky Decomposition #
 ################	  #####################		 ##########################
-
+								|							|
+								|							|--{nonz, added eps}
+								V							V
+						################			##################
+						#  Band Width  #			# Solver: w<-BAv #
+						################			##################
+															|
+															V
+													##################
+													# Cond(BA) = M/m #
+													##################
