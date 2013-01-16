@@ -41,6 +41,8 @@ typedef float real;
 #define SGN(x) (((x)<0)?(-1):(1))
 #endif
 
+#define MIN2(x,y) (((x)<(y))?(x):(y))
+
 // define ERROR codes
 #define ERROR_NO_ERROR			0
 #define ERROR_MEMORY_ALLOCATION 2

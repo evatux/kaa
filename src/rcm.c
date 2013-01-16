@@ -176,7 +176,7 @@ int find_permutation(TWGraph *gr, int **_perm, int **_invp, real threshold) {
 
 			for (i = gr->xadj[v]; i < gr->xadj[v+1]; i++) {
 				g = gr->adjncy[i];
-				if ( invp[g] < 0 && FABS(gr->wvert[g]) < threshold ) {
+				if ( invp[g] < 0 && FABS(gr->wvert[g]) < MIN2(threshold, FABS(gr->wvert[v])) ) {
 					stack_push(&queue, v);
 					v = g;
 					break;
