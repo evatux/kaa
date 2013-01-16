@@ -14,6 +14,6 @@
 #define CHEPS_THRESHOLD		1e-3
 
 //	Cholesky decomposition interface
-int cholesky_decomposition(TMatrix_DCSR* /*A*/, TMatrix_DCSR* /*L*/, const real /*cheps*/, int* /*neps*/);
+int cholesky_decomposition(TMatrix_DCSR* /*A*/, TMatrix_DCSR* /*LD*/, const real /*cheps*/, int* /*neps*/);
 
 #endif

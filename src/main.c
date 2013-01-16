@@ -136,7 +136,7 @@ int main(int argc, char** argv) {
 	if (config.make_original) {
 		fprintf(inf, "\n=============[ Original RCM ]=============\n");
 
-		TMatrix_DCSR A, L;
+		TMatrix_DCSR A, LD;
 		int neps = 0;
 		SAFE(	matrix_copy(&matr_src, &A)	);
 		SAFE(	rcm(&A, 0)					);
@@ -144,18 +144,18 @@ int main(int argc, char** argv) {
 		fprintf(inf, "\tRCM output:      [nonz: %d], [band: %d]\n", A.nonz, matrix_get_band(&A));
 		if ( config.portrait_file != NULL ) matrix_portrait_pattern(&A, config.portrait_file, "_orcm", config.graph_threshold);
 
-//		SAFE(	cholesky_decomposition(&A, &L, config.cheps_threshold, &neps) 	);
+		SAFE(	cholesky_decomposition(&A, &LD, config.cheps_threshold, &neps) 	);
 
-//		fprintf(inf, "\tCholesky output: [nonz: %d], [cheps: %e], [neps: %d]\n", 2*L.nonz, config.cheps_threshold, neps);
-//		if ( config.portrait_file != NULL ) matrix_portrait_pattern(&L, config.portrait_file, "_ochl", config.graph_threshold);
+		fprintf(inf, "\tCholesky output: [nonz: %d], [cheps: %e], [neps: %d]\n", 2*LD.nonz, config.cheps_threshold, neps);
+		if ( config.portrait_file != NULL ) matrix_portrait_pattern(&LD, config.portrait_file, "_ochl", config.graph_threshold);
 
 		matrix_destroy(&A);
-//		matrix_destroy(&L);
+		matrix_destroy(&LD);
 	}
 	if (config.make_modified) {
 		fprintf(inf, "\n=============[ Modified RCM ]=============\n");
 
-		TMatrix_DCSR A, L;
+		TMatrix_DCSR A, LD;
 		int neps = 0;
 		SAFE(	matrix_copy(&matr_src, &A)	);
 		SAFE(	rcm(&A, config.threshold)	);
@@ -163,13 +163,13 @@ int main(int argc, char** argv) {
 		fprintf(inf, "\tRCM output:      [nonz: %d], [band: %d]\n", A.nonz, matrix_get_band(&A));
 		if ( config.portrait_file != NULL ) matrix_portrait_pattern(&A, config.portrait_file, "_zrcm", config.graph_threshold);
 
-//		SAFE(	cholesky_decomposition(&A, &L, config.cheps_threshold, &neps) 	);
+		SAFE(	cholesky_decomposition(&A, &LD, config.cheps_threshold, &neps) 	);
 
-//		fprintf(inf, "\tCholesky output: [nonz: %d], [cheps: %e], [neps: %d]\n", 2*L.nonz, config.cheps_threshold, neps);
-//		if ( config.portrait_file != NULL ) matrix_portrait_pattern(&L, config.portrait_file, "_zchl", config.graph_threshold);
+		fprintf(inf, "\tCholesky output: [nonz: %d], [cheps: %e], [neps: %d]\n", 2*LD.nonz, config.cheps_threshold, neps);
+		if ( config.portrait_file != NULL ) matrix_portrait_pattern(&LD, config.portrait_file, "_zchl", config.graph_threshold);
 
 		matrix_destroy(&A);
-//		matrix_destroy(&L);
+		matrix_destroy(&LD);
 	}
 
 	matrix_destroy(&matr_src);

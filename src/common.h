@@ -35,6 +35,12 @@ typedef float real;
 #define SQRT sqrtf
 #endif
 
+#ifdef SGN_WITH_ZERO
+#define SGN(x) (((x)<0)?(-1):((x)==0)?(0):(1))
+#else
+#define SGN(x) (((x)<0)?(-1):(1))
+#endif
+
 // define ERROR codes
 #define ERROR_NO_ERROR			0
 #define ERROR_MEMORY_ALLOCATION 2
