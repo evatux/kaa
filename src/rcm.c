@@ -9,7 +9,8 @@
 
 #define ERROR_MESSAGE(c,e) do { printf("%s (err_code: %d)\n", c, e); return e; } while(0)
 
-static int perm_init(int size, int **_perm, int **_invp) {
+static int perm_init(int size, int **_perm, int **_invp)
+{
 	int i;
 	int *perm = (int*)malloc(sizeof(int)*size);
 	int *invp = (int*)malloc(sizeof(int)*size);
@@ -29,18 +30,21 @@ static int perm_init(int size, int **_perm, int **_invp) {
 	return ERROR_NO_ERROR;
 }
 
-static int perm_get_free_index(int size, int *invp) {
+static int perm_get_free_index(int size, int *invp)
+{
 	int i;
 
 	for (i = 0; i < size; ++i) if ( invp[i] == -2 ) return i;
+						  else if ( invp[i] < 0 ) printf("[debug]: {perm_get_free_index}: invp[%d] = %d\n", i, invp[i]), exit(2);
 #ifdef _DEBUG_LEVEL_0
-						  else if ( invp[i] < 0 ) printf("[debug]: {perm_get_free_index}: invp[%d] = %d\n", i, invp[i]);
+						  else if ( invp[i] < 0 ) printf("[debug]: {perm_get_free_index}: invp[%d] = %d\n", i, invp[i]), exit(2);
 #endif
 
 	return -1;
 }
 
-static int find_periphery_in_subgraph(TWGraph *gr, int *per) {
+static int find_periphery_in_subgraph(TWGraph *gr, int *per)
+{
 	int i;
 	int level;
 	int max_level, max_vertex, min_neighbour;
@@ -125,7 +129,8 @@ static int find_periphery_in_subgraph(TWGraph *gr, int *per) {
 	return ERROR_NO_ERROR;
 }
 
-static int find_periphery(TWGraph *gr, int *invp) {
+static int find_periphery(TWGraph *gr, int *invp)
+{
 	int err = ERROR_NO_ERROR;
 	int start_vertex = perm_get_free_index(gr->size, invp);
 	if (start_vertex == -1) return -1;
@@ -137,7 +142,8 @@ static int find_periphery(TWGraph *gr, int *invp) {
 	return start_vertex;
 }
 
-int find_permutation(TWGraph *gr, int **_perm, int **_invp, real threshold) {
+int find_permutation(TWGraph *gr, int **_perm, int **_invp, real threshold)
+{
 // Making permututation vector
 //
 // v-th vertex comes perm[v] 
@@ -174,6 +180,8 @@ int find_permutation(TWGraph *gr, int **_perm, int **_invp, real threshold) {
 
 		while (queue_pop(&queue, &v)) {
 
+			if (invp[v] != -1) continue;
+
 			for (i = gr->xadj[v]; i < gr->xadj[v+1]; i++) {
 				g = gr->adjncy[i];
 				if ( invp[g] < 0 && FABS(gr->wvert[g]) < MIN2(threshold, FABS(gr->wvert[v])) ) {
@@ -190,6 +198,7 @@ int find_permutation(TWGraph *gr, int **_perm, int **_invp, real threshold) {
 			perm[gr->size - 1 - s] = v;
 			invp[v] = gr->size - 1 - s++;	// put connected vertices closer
 #endif
+
 			for (i = gr->xadj[v]; i < gr->xadj[v+1]; i++) {
 				g = gr->adjncy[i];
 				if ( invp[g] == -2 ) {
@@ -219,12 +228,12 @@ int find_permutation(TWGraph *gr, int **_perm, int **_invp, real threshold) {
 #endif
 
 	return ERROR_NO_ERROR;
-
 }
 
 // REORDERING graph
 
-int graph_reorder(TWGraph *gr, int *perm, int *invp) {
+int graph_reorder(TWGraph *gr, int *perm, int *invp)
+{
 	real *wvert, *wedge;
 	int  *adjncy, *xadj;
 	int  i, j, ci, g;
@@ -282,7 +291,9 @@ graph_show(gr);
 }
 
 //	REORDERING: RCM. Reverse Cuthill-McKey
-int rcm(TMatrix_DCSR *matr, real threshold) {
+
+int rcm(TMatrix_DCSR *matr, real threshold)
+{
 	TWGraph gr;
 	int *perm, *invp;
 	int err = 0;
@@ -319,10 +330,13 @@ printf("[debug(0)]{rcm}: matrix_builder\n");
 	return ERROR_NO_ERROR;
 }
 
-int rcm_mod(TMatrix_DCSR *matr) {
+int rcm_mod(TMatrix_DCSR *matr)
+{
 	return rcm(matr, EPS_THRESHOLD);
 }
 
-int rcm_orig(TMatrix_DCSR *matr) {
+int rcm_orig(TMatrix_DCSR *matr)
+{
 	return rcm(matr, 0);
 }
+

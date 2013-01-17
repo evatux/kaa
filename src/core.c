@@ -11,7 +11,8 @@
     #include "graphics.h"
 #endif
 
-int matrix_load(TMatrix_DCSR *matr, const char* filename) {
+int matrix_load(TMatrix_DCSR *matr, const char* filename)
+{
 	int size, nonz;
 	int i;
 	real *diag;
@@ -56,7 +57,8 @@ int matrix_load(TMatrix_DCSR *matr, const char* filename) {
 	return ERROR_NO_ERROR;
 }
 
-int matrix_portrait(TMatrix_DCSR *matr, const char *filename, real threshold) {
+int matrix_portrait(TMatrix_DCSR *matr, const char *filename, real threshold)
+{
 #ifndef CONFIG_DISABLE_GRAPHICS
 	return make_matrix_portrait_color(matr, filename, threshold);
 #endif
@@ -72,7 +74,8 @@ int matrix_portrait_pattern(TMatrix_DCSR *matr, const char *pattern, const char 
 	return matrix_portrait(matr, str, threshold);
 }
 
-void matrix_simp_show(TMatrix_Simple *matr) {
+void matrix_simp_show(TMatrix_Simple *matr)
+{
 	int i, j;
 	int size = matr->size;
 	for (i = 0; i < size; i++) {
@@ -94,7 +97,8 @@ void matrix_simp_show(TMatrix_Simple *matr) {
 	printf("\n");
 }
 
-void matrix_show(TMatrix_DCSR *matr, int flag_ordered) {
+void matrix_show(TMatrix_DCSR *matr, int flag_ordered)
+{
 	int i, j;
 	int ci = 0;
 	int flag;
@@ -134,7 +138,8 @@ void matrix_show(TMatrix_DCSR *matr, int flag_ordered) {
 	printf("\n");
 }
 
-void graph_show(TWGraph *gr) {
+void graph_show(TWGraph *gr)
+{
 	int i;
 	printf("===graph===");
 	printf("\nwedge:  ");
@@ -170,8 +175,6 @@ void graph_destroy(TWGraph *gr)
 	if (gr->wedge )	free(gr->wedge );
 	if (gr->adjncy)	free(gr->adjncy);
 	if (gr->xadj  )	free(gr->xadj  );
-	
-
 }
 
 int matrix_get_band(TMatrix_DCSR *matr)
