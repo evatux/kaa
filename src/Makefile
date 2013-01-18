@@ -13,8 +13,12 @@ CFLAGS += -Wall
 endif
 
 all: rcm.out
+test: test.out
 
-rcm.out: main.o rcm.o core.o graphics.o unit.o cholesky.o
+test.out: test.o rcm.o core.o graphics.o unit.o cholesky.o solver.o
+	$(CC) $^ $(LIBS) $(PNGLIBS) -o ../bin/$@
+
+rcm.out: main.o rcm.o core.o graphics.o unit.o cholesky.o solver.o
 	$(CC) $^ $(LIBS) $(PNGLIBS) -o ../bin/$@
 
 %.o: %.c $(DEPS)
