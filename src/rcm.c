@@ -37,7 +37,7 @@ static int perm_get_free_index(int size, int *invp)
 	for (i = 0; i < size; ++i) if ( invp[i] == -2 ) return i;
 						  else if ( invp[i] < 0 ) printf("[debug]: {perm_get_free_index}: invp[%d] = %d\n", i, invp[i]), exit(2);
 #ifdef _DEBUG_LEVEL_0
-						  else if ( invp[i] < 0 ) printf("[debug]: {perm_get_free_index}: invp[%d] = %d\n", i, invp[i]), exit(2);
+						  else if ( invp[i] < 0 ) printf("[debug]: {perm_get_free_index}: invp[%d] = %d\n", i, invp[i]), exit(3);
 #endif
 
 	return -1;
@@ -184,7 +184,7 @@ int find_permutation(TWGraph *gr, int **_perm, int **_invp, real threshold)
 
 			for (i = gr->xadj[v]; i < gr->xadj[v+1]; i++) {
 				g = gr->adjncy[i];
-				if ( invp[g] < 0 && FABS(gr->wvert[g]) < MIN2(threshold, FABS(gr->wvert[v])) ) {
+				if ( invp[g] < 0 && ( FABS(gr->wvert[g]) < MIN2(threshold, FABS(gr->wvert[v])) ) ) {
 					stack_push(&queue, v);
 					v = g;
 					break;

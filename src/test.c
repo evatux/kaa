@@ -12,6 +12,8 @@
 #define MAX_TEST_DIM 1000
 #define TEST_SPARSITY 0.1
 #define TEST_CHEPS   1e-3
+#define TOLERANCE	 1e-5
+
 /*
 int test_convert() {
 	TMatrix_Simple simpM;
@@ -37,14 +39,27 @@ int test_convert() {
 }
 */
 int test_solver() {
+#define CLEANUP() \
+	{									\
+		free(X);						\
+		free(Y);						\
+		free(Z);						\
+		matrix_destroy(&LD);			\
+		matrix_destroy(&A);				\
+		matrix_simp_destroy(&simpM);	\
+	}
+
 	int i, j, p, non_zero_in_row;
 	int neps;
 	int err;
 	int size = MIN_TEST_DIM + rand() % (MAX_TEST_DIM - MIN_TEST_DIM);
+//	int size = 3;
 	TMatrix_Simple simpM;
 	TMatrix_DCSR   A, LD;
 	real *X, *Y, *Z;
-	real max_err;
+	real max_err, expected;
+
+	printf("TEST :: solver :: size = %d\n", size);
 
 	simpM.size = size;
 	if ( NULL == (simpM.val = (real*)malloc(sizeof(real)*size*size))) return ERROR_MEMORY_ALLOCATION;
@@ -52,9 +67,15 @@ int test_solver() {
 	if ( NULL == (Y			= (real*)malloc(sizeof(real)*size)) 	) return ERROR_MEMORY_ALLOCATION;
 	if ( NULL == (Z			= (real*)malloc(sizeof(real)*size)) 	) return ERROR_MEMORY_ALLOCATION;
 
+/*
+	simpM.val[0] = 1.; simpM.val[1] = 1.;simpM.val[2] = 0.;
+	simpM.val[3] = 1.; simpM.val[4] = 2.;simpM.val[5] = 0.;
+	simpM.val[6] = 0.; simpM.val[7] = 0.;simpM.val[8] = 1.;
+*/
+
 	// make SPD matrix
 	for (i = 0; i < size*size; ++i) simpM.val[i] = 0;
-	for (i = 0; i < size; ++i) simpM.val[i*size+i] = (size * TEST_SPARSITY + 1) + rand() % (MAX_TEST_DIM - MIN_TEST_DIM);
+	for (i = 0; i < size; ++i) simpM.val[i*size+i] = (size + 1) + rand() % (MAX_TEST_DIM - MIN_TEST_DIM);
 	for (i = 1; i < size; ++i) {
 		if (!(rand()%10)) continue; // lots of zero rows
 		non_zero_in_row = 1 + rand() % ((int)(size * TEST_SPARSITY));
@@ -68,35 +89,36 @@ int test_solver() {
 
 	cholesky_decomposition(&A, &LD, TEST_CHEPS, &neps);
 	if ( neps != 0 ) {
-		free(X);
-		free(Y);
-		free(Z);
-		matrix_destroy(&LD);
-		matrix_destroy(&A);
-		matrix_simp_destroy(&simpM);
+		CLEANUP();
 		printf("TEST :: solver :: neps = %d\n", neps);
-		return 1;
+		return 19;
 	}
 
-	for (i = 0; i < size; ++i) Z[i] = Y[i] = X[i] = SGN(rand() % 10 - 5) * rand() % ((int)(MAX_TEST_DIM * TEST_SPARSITY));
+	for (i = 0; i < size; ++i) Z[i] = X[i] = SGN(rand() % 10 - 5) * rand() % ((int)(MAX_TEST_DIM * TEST_SPARSITY));
 
 	err = solver(&LD, Z);
+	if (err != ERROR_NO_ERROR) {
+		printf("TEST :: solver :: solver failed");
+		CLEANUP();
+		return 19;
+	}
 
 	matrix_vector_mult(&A, Z, Y);
+/*
+	printf("X\tY\tZ\t\tX ?= Y=AZ \n");
+	for (i = 0; i < size; ++i) printf("%-8.2f%-8.2f%-8.2f\n", X[i], Y[i], Z[i]);
+*/
+	max_err = 0.; expected = X[0];
+	for (i = 0; i < size; ++i) if (FABS(X[i] - Y[i]) > max_err) max_err = FABS(X[i] - Y[i]), expected = X[i];
 
-	max_err = 0.;
-	for (i = 0; i < size; ++i) if (FABS(X[i] - Y[i]) < max_err) max_err = FABS(X[i] - Y[i]);
+	CLEANUP();
 
-	printf("TEST :: solver :: max_err = %.2e\n", max_err);
-
-	free(X);
-	free(Y);
-	free(Z);
-	matrix_destroy(&LD);
-	matrix_destroy(&A);
-	matrix_simp_destroy(&simpM);
-
+	if (max_err/(FABS(expected)+TOLERANCE) > TOLERANCE) {
+		printf("TEST :: solver :: max_err = %.2e (expected: %.2e)\n", max_err, expected);
+		return 19;
+	}
 	return ERROR_NO_ERROR;
+#undef CLEANUP
 }
 
 int main(int argc, char** argv) {

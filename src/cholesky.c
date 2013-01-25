@@ -36,7 +36,7 @@ int cholesky_decomposition(TMatrix_DCSR *A, TMatrix_DCSR *LD, const real cheps, 
 
 	// Cholesky decomposition
 	for (j = 0; j < size; ++j) {
-		ljj = LS[j*size+j]; for (k=0; k<j-1; ++k) ljj -= LS[j*size+k]*LS[j*size+k]*LS[k*size+k];
+		ljj = LS[j*size+j]; for (k=0; k<j; ++k) ljj -= LS[j*size+k]*LS[j*size+k]*LS[k*size+k];
 //EXCEPTION(sum < 0, "l[j,j] < 0 ; j = %d\n", j, ERROR_NEGATIVE_SQRT);
 
 		if (FABS(ljj) < cheps) {	// this is modification of cholesky
@@ -45,7 +45,7 @@ int cholesky_decomposition(TMatrix_DCSR *A, TMatrix_DCSR *LD, const real cheps, 
 		} else LS[j*size+j] = ljj;
 
 		for (i = j+1; i < size; ++i) {
-			sum = 0.; for (k=0; k<j-1; ++k) sum += LS[i*size+k]*LS[j*size+k]*LS[k*size+k];
+			sum = 0.; for (k=0; k<j; ++k) sum += LS[i*size+k]*LS[j*size+k]*LS[k*size+k];
 			LS[i*size+j] = (LS[i*size+j] - sum) / ljj; 
 		}
 	}
