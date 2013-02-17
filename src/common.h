@@ -10,9 +10,10 @@
 #include <math.h>
 
 #ifdef  _DEBUG
-#define _DEBUG_LEVEL_0
-#define _DEBUG_LEVEL_1
-#define _DEBUG_LEVEL_2
+//#define _DEBUG_LEVEL_0
+//#define _DEBUG_LEVEL_1
+//#define _DEBUG_LEVEL_2
+#define _DEBUG_LEVEL_SOLVER
 #endif
 
 #define PRINT_ZEROES
@@ -25,7 +26,7 @@
  */
 
 // define precision (float by default)
-// #define _TEST_DOUBLE 
+#define _TEST_DOUBLE 
 #ifdef _TEST_DOUBLE
 typedef double real;
 #define FABS fabs
@@ -43,6 +44,7 @@ typedef float real;
 #endif
 
 #define MIN2(x,y) (((x)<(y))?(x):(y))
+#define SWAP(_T,__x,__y) do { _T __t = __x; __x = __y; __y = __t; } while(0)
 
 // define ERROR codes
 #define ERROR_NO_ERROR			0

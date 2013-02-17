@@ -14,30 +14,32 @@
 #define TEST_CHEPS   1e-3
 #define TOLERANCE	 1e-5
 
-/*
-int test_convert() {
-	TMatrix_Simple simpM;
-	TMatrix_DCSR   d1, d2;
-	int i;
+int test_converter() {
+	TMatrix_Simple m0, m1;
+	TMatrix_DCSR   d1;
+	int i, pass = 1;
+	int size = MIN_TEST_DIM + rand() % (MAX_TEST_DIM - MIN_TEST_DIM);
+	
+	printf("TEST :: %10s :: size = %d\n", "converter", size);
 
-	matrix_load(&d1, config->matr_in_file);
-	matrix_convert_dcsr2simp(&d1, &simpM);
-	matrix_convert_simp2dcsr(&simpM, &d2);
+	if ( (m0.val = (real*)malloc(sizeof(real)*size*size)) == NULL ) return ERROR_MEMORY_ALLOCATION;
 
-#define CMI(X,I) do { if (d1.X != d2.X) { printf("test failed: (%d) %d != %d\n", I, d1.X, d2.X); exit(2); } } while(0)
-#define CMF(X,I) do { if (d1.X != d2.X) { printf("test failed: (%d) %f != %f\n", I, d1.X, d2.X); exit(2); } } while(0)
+	m0.size = size;
+	for (i = 0; i < size*size; ++i) m0.val[i] = (1.0 / MAX_TEST_DIM)*(rand() % MAX_TEST_DIM);
 
-	printf("\nsize: "); CMI(size,0);
-	printf("\nnonz: "); CMI(nonz,0);
-	printf("\ndiag: "); for (i = 0; i < d1.size; ++i) CMF(diag[i],i);
-	printf("\nval:  "); for (i = 0; i < d1.nonz; ++i) CMF( val[i],i);
-	printf("\ncol:  "); for (i = 0; i < d1.nonz; ++i) CMI(col_ind[i],i);
-	printf("\nrow:  "); for (i = 0; i < d1.size; ++i) CMI(row_ptr[i],i);
+	matrix_convert_simp2dcsr(&m0, &d1);
+	matrix_convert_dcsr2simp(&d1, &m1);
 
-	printf("test passed\n");
-	exit(0);
+	for (i = 0; i < size*size; ++i) if ( m0.val[i] != m1.val[i] ) { pass = 0; break; }
+
+	matrix_simp_destroy(&m0);
+	matrix_simp_destroy(&m1);
+	matrix_destroy(&d1);
+
+	if (!pass) printf("TEST :: %10s :: test failed (i = %d)", "converter", i);
+	return (pass==1)?ERROR_NO_ERROR:19;
 }
-*/
+
 int test_solver() {
 #define CLEANUP() \
 	{									\
@@ -59,7 +61,7 @@ int test_solver() {
 	real *X, *Y, *Z;
 	real max_err, expected;
 
-	printf("TEST :: solver :: size = %d\n", size);
+	printf("TEST :: %10s :: size = %d\n", "solver", size);
 
 	simpM.size = size;
 	if ( NULL == (simpM.val = (real*)malloc(sizeof(real)*size*size))) return ERROR_MEMORY_ALLOCATION;
@@ -90,7 +92,7 @@ int test_solver() {
 	cholesky_decomposition(&A, &LD, TEST_CHEPS, &neps);
 	if ( neps != 0 ) {
 		CLEANUP();
-		printf("TEST :: solver :: neps = %d\n", neps);
+		printf("TEST :: %10s :: neps = %d\n", "solver", neps);
 		return 19;
 	}
 
@@ -98,7 +100,7 @@ int test_solver() {
 
 	err = solver(&LD, Z);
 	if (err != ERROR_NO_ERROR) {
-		printf("TEST :: solver :: solver failed");
+		printf("TEST :: %10s :: solver failed (err = %d)", "solver", err);
 		CLEANUP();
 		return 19;
 	}
@@ -114,21 +116,78 @@ int test_solver() {
 	CLEANUP();
 
 	if (max_err/(FABS(expected)+TOLERANCE) > TOLERANCE) {
-		printf("TEST :: solver :: max_err = %.2e (expected: %.2e)\n", max_err, expected);
+		printf("TEST :: %10s :: max_err = %.2e (expected: %.2e)\n", "solver",  max_err, expected);
 		return 19;
 	}
 	return ERROR_NO_ERROR;
 #undef CLEANUP
 }
 
+int test_lambda() {
+	TMatrix_Simple SM;
+	TMatrix_DCSR   A, LD;
+	int i, neps, err;
+	int size = 5; // MIN_TEST_DIM + rand() % (MAX_TEST_DIM - MIN_TEST_DIM);
+	real M = -1, m = -1;
+	
+	printf("TEST :: %10s :: size = %d\n", "lambda", size);
+
+	if ( (SM.val = (real*)malloc(sizeof(real)*size*size)) == NULL ) return ERROR_MEMORY_ALLOCATION;
+
+	SM.size = size;
+	for (i = 0; i < size*size; ++i) SM.val[i] = (i%size==i/size)?(i/size+1):0;
+//	matrix_simp_show(&SM);
+
+	err  = matrix_convert_simp2dcsr(&SM, &A);
+	err |= cholesky_decomposition(&A, &LD, CHEPS_THRESHOLD, &neps);
+
+	if (err != ERROR_NO_ERROR) {
+		printf("TEST :: %10s :: preparation failed (err = %d)\n", "lambda", err);
+		return err;
+	}
+
+//	matrix_show(&A, 1);
+//	matrix_show(&LD, 1);
+
+	err = lambda(&A, &LD, &m, &M);
+	if (err != ERROR_NO_ERROR) {
+		printf("TEST :: %10s :: test failed (err = %d)\n", "lambda", err);
+		return err;
+	}
+
+	matrix_simp_destroy(&SM);
+	matrix_destroy(&A);
+	matrix_destroy(&LD);
+
+	printf("TEST :: %10s :: l_min = %.2e, l_max = %.2e\n", "lambda", m, M);
+	return ERROR_NO_ERROR;
+}
+
 int main(int argc, char** argv) {
-	int err;
+	int err, i;
 	srand( time(NULL) );
 
+	if (argc >= 2) sscanf(argv[1], "%d", &i);
+	switch(i) {
+		case 1: goto l1; break;
+		case 2: goto l2; break;
+		case 3: goto l3; break;
+	}
+
+l1:
+	err = test_converter();
+	if (err != ERROR_NO_ERROR) printf("TEST :: %10s :: FAILED\n", "converter"), exit(1);
+
+l2:
 	err = test_solver();
-	if (err != ERROR_NO_ERROR) printf("TEST :: solver :: FAILED\n"), exit(1);
+	if (err != ERROR_NO_ERROR) printf("TEST :: %10s :: FAILED\n", "solver"), exit(1);
+
+l3:
+	err = test_lambda();
+	if (err != ERROR_NO_ERROR) printf("TEST :: %10s :: FAILED\n", "lambda"), exit(1);
 
 	printf("TEST PASSED\n");
 
 	return 0;
 }
+

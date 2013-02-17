@@ -93,29 +93,6 @@ void load_config(int argc, char** argv, config_t *config) {
 	}
 }
 
-void test(config_t* config) {
-	TMatrix_Simple simpM;
-	TMatrix_DCSR   d1, d2;
-	int i;
-
-	matrix_load(&d1, config->matr_in_file);
-	matrix_convert_dcsr2simp(&d1, &simpM);
-	matrix_convert_simp2dcsr(&simpM, &d2);
-
-#define CMI(X,I) do { if (d1.X != d2.X) { printf("test failed: (%d) %d != %d\n", I, d1.X, d2.X); exit(2); } } while(0)
-#define CMF(X,I) do { if (d1.X != d2.X) { printf("test failed: (%d) %f != %f\n", I, d1.X, d2.X); exit(2); } } while(0)
-
-	printf("\nsize: "); CMI(size,0);
-	printf("\nnonz: "); CMI(nonz,0);
-	printf("\ndiag: "); for (i = 0; i < d1.size; ++i) CMF(diag[i],i);
-	printf("\nval:  "); for (i = 0; i < d1.nonz; ++i) CMF( val[i],i);
-	printf("\ncol:  "); for (i = 0; i < d1.nonz; ++i) CMI(col_ind[i],i);
-	printf("\nrow:  "); for (i = 0; i < d1.size; ++i) CMI(row_ptr[i],i);
-
-	printf("test passed\n");
-	exit(0);
-}
-
 int main(int argc, char** argv) {
 	config_t config;
 	load_config(argc, argv, &config);
