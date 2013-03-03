@@ -21,7 +21,7 @@
 
 /*
  * Notation: 
- *		Numeration starts from 0 to n-1
+ *      Numeration starts from 0 to n-1
  *
  */
 
@@ -47,24 +47,24 @@ typedef float real;
 #define SWAP(_T,__x,__y) do { _T __t = __x; __x = __y; __y = __t; } while(0)
 
 // define ERROR codes
-#define ERROR_NO_ERROR			0
+#define ERROR_NO_ERROR          0
 #define ERROR_MEMORY_ALLOCATION 2
-#define ERROR_FILE_IO 			17
-#define ERROR_DIV_BY_ZERO		30
-#define ERROR_NEGATIVE_SQRT		31
-#define ERROR_GRAPHICS			98
-#define ERROR_UNIMPLEMENTED		99
+#define ERROR_FILE_IO           17
+#define ERROR_DIV_BY_ZERO       30
+#define ERROR_NEGATIVE_SQRT     31
+#define ERROR_GRAPHICS          98
+#define ERROR_UNIMPLEMENTED     99
 
 #define PRINT_ERROR_MESSAGE(x) \
-	{																							\
-		switch(x) {																				\
-			case 2 : fprintf(stderr, "error(%d): memory allocation error\n",	(x)); break;	\
-			case 17: fprintf(stderr, "error(%d): file input/output error\n",	(x)); break;	\
-			case 30: fprintf(stderr, "error(%d): division by zero\n", 			(x)); break;	\
-			case 31: fprintf(stderr, "error(%d): sqrt from negative number\n",	(x)); break;	\
-			case 98: fprintf(stderr, "error(%d): graphics error\n",				(x)); break;	\
-			case 99: fprintf(stderr, "error(%d): unimplemented feature\n",		(x)); break;	\
-		}																						\
-	}
+    {                                                                                           \
+        switch(x) {                                                                             \
+            case 2 : fprintf(stderr, "error(%d): memory allocation error\n",    (x)); break;    \
+            case 17: fprintf(stderr, "error(%d): file input/output error\n",    (x)); break;    \
+            case 30: fprintf(stderr, "error(%d): division by zero\n",           (x)); break;    \
+            case 31: fprintf(stderr, "error(%d): sqrt from negative number\n",  (x)); break;    \
+            case 98: fprintf(stderr, "error(%d): graphics error\n",             (x)); break;    \
+            case 99: fprintf(stderr, "error(%d): unimplemented feature\n",      (x)); break;    \
+        }                                                                                       \
+    }
 
 #endif

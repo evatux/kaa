@@ -9,97 +9,97 @@
 
 static real vector_normalize(real *X, int size)
 {
-	int i;
-	real norm = 0;
+    int i;
+    real norm = 0;
 
 #ifdef _OPENMP
 #pragma omp parallel for reduction (+:norm)
 #endif
-	for(i = 0; i < size; ++i) {
-		norm += X[i]*X[i];
-	}
+    for(i = 0; i < size; ++i) {
+        norm += X[i]*X[i];
+    }
 
-	norm = SQRT(norm);
+    norm = SQRT(norm);
 #ifdef _OPENMP
 #pragma omp parallel for private(i)
 #endif
-	for(i = 0; i < size; ++i) {
-		X[i] /= norm;
-	}
+    for(i = 0; i < size; ++i) {
+        X[i] /= norm;
+    }
 
-	return norm;
+    return norm;
 }
 
 // Y <- AX
 int matrix_vector_mult(TMatrix_DCSR *A, real *X, real *Y)
 {
-	int i, j;
+    int i, j;
 #ifdef _OPENMP
 #pragma omp parallel for private(i,j)
 #endif
-	for (i = 0; i < A->size; ++i) {
-		Y[i] = A->diag[i]*X[i];
-		for (j = A->row_ptr[i]; j < A->row_ptr[i+1]; j++)
-			Y[i] += A->val[j] * X[A->col_ind[j]];
-	}
-	return ERROR_NO_ERROR;
+    for (i = 0; i < A->size; ++i) {
+        Y[i] = A->diag[i]*X[i];
+        for (j = A->row_ptr[i]; j < A->row_ptr[i+1]; j++)
+            Y[i] += A->val[j] * X[A->col_ind[j]];
+    }
+    return ERROR_NO_ERROR;
 }
 
 // Solve: Y <- (A^-1)Y, cholesky(A) = LD
 int solver(TMatrix_DCSR *LD, real *Y)
 {
-	int i, j, dbz = 0;
+    int i, j, dbz = 0;
 
-	// Y <- (L^-1)Y
-	for (i = 0; i < LD->size; ++i) {
-		for (j = LD->row_ptr[i]; LD->col_ind[j] < i && j < LD->row_ptr[i+1]; ++j)
-			Y[i] -= LD->val[j] * Y[LD->col_ind[j]];
-	}
+    // Y <- (L^-1)Y
+    for (i = 0; i < LD->size; ++i) {
+        for (j = LD->row_ptr[i]; LD->col_ind[j] < i && j < LD->row_ptr[i+1]; ++j)
+            Y[i] -= LD->val[j] * Y[LD->col_ind[j]];
+    }
 
-	// Y <- (D^-1)Y
+    // Y <- (D^-1)Y
 #ifdef _OPENMP
 #pragma omp parallel for private(i) shared(dbz)
 #endif
-	for (i = 0; i < LD->size; ++i) 
-		if ( FABS(LD->diag[i]) < INV_EPS ) dbz = 1;
-		else Y[i] /= LD->diag[i];
-	if (dbz == 1) {
+    for (i = 0; i < LD->size; ++i) 
+        if ( FABS(LD->diag[i]) < INV_EPS ) dbz = 1;
+        else Y[i] /= LD->diag[i];
+    if (dbz == 1) {
 #ifdef _DEBUG_LEVEL_SOLVER
-		printf("[debug] {solver}: division by zero found\n");
+        printf("[debug] {solver}: division by zero found\n");
 #endif
-		return ERROR_DIV_BY_ZERO;
-	}
+        return ERROR_DIV_BY_ZERO;
+    }
 
-	// Y <- (L^-T)Y
-	for (i = LD->size-1; i >= 0; --i) {
-		for (j = LD->row_ptr[i]; LD->col_ind[j] < i && j < LD->row_ptr[i+1]; ++j) 
-			Y[LD->col_ind[j]] -= LD->val[j] * Y[i];
-	}
+    // Y <- (L^-T)Y
+    for (i = LD->size-1; i >= 0; --i) {
+        for (j = LD->row_ptr[i]; LD->col_ind[j] < i && j < LD->row_ptr[i+1]; ++j) 
+            Y[LD->col_ind[j]] -= LD->val[j] * Y[i];
+    }
 
-	return ERROR_NO_ERROR;
+    return ERROR_NO_ERROR;
 }
 
 // Make: E` <- A^-1 A, where A^-1 is made from cholesky of A
 int make_ident(TMatrix_DCSR *A, TMatrix_DCSR *LD, TMatrix_DCSR *E)
 {
 #define CLEANUP() do { if (y) free(y); if (ES.val) free(ES.val); } while(0)
-	int size = A->size;
-	int i, j, it;
+    int size = A->size;
+    int i, j, it;
     int err;
-	real *y;
+    real *y;
     TMatrix_Simple ES;
 
-	y = (real*)malloc(sizeof(real)*size);
+    y = (real*)malloc(sizeof(real)*size);
     ES.val = (real*)malloc(sizeof(real)*size*size);
     ES.size = size;
 
 //matrix_show(LD, 1);
 
-	if (y == NULL || ES.val == NULL) {
-		CLEANUP();
-		fprintf(stderr, "error [make_ident]: memory allocation error\n");
-		return ERROR_MEMORY_ALLOCATION;
-	}
+    if (y == NULL || ES.val == NULL) {
+        CLEANUP();
+        fprintf(stderr, "error [make_ident]: memory allocation error\n");
+        return ERROR_MEMORY_ALLOCATION;
+    }
 
     // y <- A[*, j], y <- (A^-1) y
     for (j = 0; j < size; ++j)

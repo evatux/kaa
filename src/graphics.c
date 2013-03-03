@@ -6,7 +6,7 @@
 #include <stdint.h>
 
 // =============================================
-// 		internal subroutines
+//      internal subroutines
 // =============================================
 
 /* A coloured pixel. */
@@ -31,14 +31,14 @@ static pixel_t * pixel_at (bitmap_t * bitmap, int x, int y)
 /* Scale matrix coordinates to picture coordinates */
 static pixel_t * matrix_pixel_at (bitmap_t *bitmap, int row, int col, int matr_size) 
 {
-	if (matr_size > MAX_PNG_SIZE) { // use scaling
-		int x, y;
-		x = (int) ( (double)(col * MAX_PNG_SIZE)/(double)matr_size );
-		y = (int) ( (double)(row * MAX_PNG_SIZE)/(double)matr_size );
-		return bitmap->pixels + bitmap->width * y + x;
-	} else {
-		return bitmap->pixels + bitmap->width * row + col;
-	}
+    if (matr_size > MAX_PNG_SIZE) { // use scaling
+        int x, y;
+        x = (int) ( (double)(col * MAX_PNG_SIZE)/(double)matr_size );
+        y = (int) ( (double)(row * MAX_PNG_SIZE)/(double)matr_size );
+        return bitmap->pixels + bitmap->width * y + x;
+    } else {
+        return bitmap->pixels + bitmap->width * row + col;
+    }
 }
 
 /* Write "bitmap" to a PNG file specified by "path"; returns 0 on
@@ -142,18 +142,18 @@ static int pix(int value, int max)
 static void put_point(pixel_t *pixel, int color) 
 {
     pixel->red   = 255 * (CL_RED   & color);
-	pixel->green = 255 * (CL_GREEN & color);
-	pixel->blue  = 255 * (CL_BLUE  & color);
+    pixel->green = 255 * (CL_GREEN & color);
+    pixel->blue  = 255 * (CL_BLUE  & color);
 }
 
 // =============================================
-// 		external subroutines
+//      external subroutines
 // =============================================
 
 int make_matrix_portrait_color(TMatrix_DCSR *matr, const char *filename, real threshold) 
 {
     bitmap_t portrait;
-	pixel_t *pixel;
+    pixel_t *pixel;
     int x, y;
     int size;
 
@@ -163,30 +163,30 @@ int make_matrix_portrait_color(TMatrix_DCSR *matr, const char *filename, real th
 
     portrait.pixels = (pixel_t*) malloc(sizeof(pixel_t) * portrait.width * portrait.height);
 
-	for (y = 0; y < portrait.height; y++) {
+    for (y = 0; y < portrait.height; y++) {
         for (x = 0; x < portrait.width; x++) {
-			put_point(pixel_at(&portrait, x, y), CL_WHITE);
+            put_point(pixel_at(&portrait, x, y), CL_WHITE);
         }
     }
 
     int i, j;
     int ci = 0;
 
-	for (i = 0; i < matr->size; i++) {
-		for (j = 0; j < matr->size; j++) {
-			if ( i == j ) put_point(matrix_pixel_at(&portrait, i, j, matr->size), (FABS(matr->diag[i]) < threshold)?CL_RED:CL_BLACK);
-			else {
-				for (ci = matr->row_ptr[i]; ci < matr->row_ptr[i+1]; ci++)
-					if ( matr->col_ind[ci] == j ) {
-//						put_point(matrix_pixel_at(&portrait, i, j, matr->size), CL_BLACK);
-						if (FABS(matr->val[ci]) > GRAPH_ZERO_THRESHOLD)
-							put_point(matrix_pixel_at(&portrait, i, j, matr->size), CL_BLACK);
-//						printf("%4.1f ", matr->val[ci]);
-						break;
-					}
-	    	}
-		}
-	}
+    for (i = 0; i < matr->size; i++) {
+        for (j = 0; j < matr->size; j++) {
+            if ( i == j ) put_point(matrix_pixel_at(&portrait, i, j, matr->size), (FABS(matr->diag[i]) < threshold)?CL_RED:CL_BLACK);
+            else {
+                for (ci = matr->row_ptr[i]; ci < matr->row_ptr[i+1]; ci++)
+                    if ( matr->col_ind[ci] == j ) {
+//                      put_point(matrix_pixel_at(&portrait, i, j, matr->size), CL_BLACK);
+                        if (FABS(matr->val[ci]) > GRAPH_ZERO_THRESHOLD)
+                            put_point(matrix_pixel_at(&portrait, i, j, matr->size), CL_BLACK);
+//                      printf("%4.1f ", matr->val[ci]);
+                        break;
+                    }
+            }
+        }
+    }
 
     if (save_png_to_file (&portrait, filename) != 0) return ERROR_GRAPHICS;
 
@@ -195,5 +195,5 @@ int make_matrix_portrait_color(TMatrix_DCSR *matr, const char *filename, real th
 
 int make_matrix_portrait(TMatrix_DCSR *matr, const char *filename)
 {
-	return make_matrix_portrait_color(matr, filename, 0.);
+    return make_matrix_portrait_color(matr, filename, 0.);
 }

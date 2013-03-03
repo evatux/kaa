@@ -11,9 +11,9 @@
 #include "common.h"
 #include "core.h"
 
-#define CHEPS_THRESHOLD		1e-3
+#define CHEPS_THRESHOLD     1e-3
 
-//	Cholesky decomposition interface
+//  Cholesky decomposition interface
 int cholesky_decomposition(TMatrix_DCSR* /*A*/, TMatrix_DCSR* /*LD*/, const real /*cheps*/, int* /*neps*/);
 
 #endif
