@@ -12,6 +12,12 @@
 // define max size of the picure: N x N
 #define MAX_PNG_SIZE 1024
 
+#ifdef _TEST_DOUBLE
+#define GRAPH_ZERO_THRESHOLD 1e-12
+#else
+#define GRAPH_ZERO_THRESHOLD 1e-8
+#endif
+
 // define colors (r,g,b)
 #define CL_BLACK	0
 #define CL_RED		4

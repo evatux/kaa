@@ -70,9 +70,9 @@ int matrix_save(TMatrix_DCSR *matr, const char *filename)
 
     fprintf(fp, "%d %d\n", size, nonz);
 
-	for (i = 0; i < size; i++) fprintf(fp, "%f ", matr->diag[i]);       // diagonal matrix items
+	for (i = 0; i < size; i++) fprintf(fp, "%.8e ", matr->diag[i]);       // diagonal matrix items
     fprintf(fp, "\n");
-	for (i = 0; i < nonz; i++) fprintf(fp, "%f ", matr->val[i]);        // nonzero  matrix items
+	for (i = 0; i < nonz; i++) fprintf(fp, "%.8e ", matr->val[i]);        // nonzero  matrix items
     fprintf(fp, "\n");
 	for (i = 0; i < nonz; i++) fprintf(fp, "%d ", matr->col_ind[i]);    // item's column index
     fprintf(fp, "\n");

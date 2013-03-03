@@ -178,7 +178,9 @@ int make_matrix_portrait_color(TMatrix_DCSR *matr, const char *filename, real th
 			else {
 				for (ci = matr->row_ptr[i]; ci < matr->row_ptr[i+1]; ci++)
 					if ( matr->col_ind[ci] == j ) {
-						put_point(matrix_pixel_at(&portrait, i, j, matr->size), CL_BLACK);
+//						put_point(matrix_pixel_at(&portrait, i, j, matr->size), CL_BLACK);
+						if (FABS(matr->val[ci]) > GRAPH_ZERO_THRESHOLD)
+							put_point(matrix_pixel_at(&portrait, i, j, matr->size), CL_BLACK);
 //						printf("%4.1f ", matr->val[ci]);
 						break;
 					}

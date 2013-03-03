@@ -26,6 +26,7 @@ typedef struct {
 	const char* info_file;
 	int		make_original;
 	int		make_modified;
+	int     save_reordering;
     real	threshold;
 	real	graph_threshold;
 	real	cheps_threshold;
@@ -41,6 +42,7 @@ void print_usage_and_exit() {
 	printf("  %-20s %-10s\t%s\n", "-c|--cheps_threshold", "eps", "set what small element is for cholesky");
 	printf("  %-20s %-10s\t%s\n", "-o|--original_rcm", "", "make only original rcm");
 	printf("  %-20s %-10s\t%s\n", "-m|--modified_rcm", "", "make only modified rcm");
+	printf("  %-20s %-10s\t%s\n", "-r|--reordering_save", "", "save reordering matrix in csr format (matrix-out-pattern should be defined)");
 
 	exit(2);
 }
@@ -66,6 +68,7 @@ void load_config(int argc, char** argv, config_t *config) {
 	config->cheps_threshold	= CHEPS_THRESHOLD;
 	config->make_original	= 1;
 	config->make_modified	= 1;
+	config->save_reordering = 0;
 
     if ( argc >= 3 && argv[2][0] != '-' )
     {
@@ -105,6 +108,11 @@ void load_config(int argc, char** argv, config_t *config) {
 		{
 			config->make_modified = 1;	config->make_original = 0;
 		} else
+		if (!strcmp(argv[cur_opt], "--reordering_save") || !strcmp(argv[cur_opt], "-s"))
+		{
+			if (!config->matr_out_file) print_usage_and_exit(argv[0]);
+			config->save_reordering = 1;
+		} else
 		{
 			print_usage_and_exit(argv[0]);
 		}
@@ -137,6 +145,13 @@ int main(int argc, char** argv) {
 		SAFE(	matrix_copy(&matr_src, &A)	);
 		SAFE(	rcm(&A, 0)					);
 
+        if (config.save_reordering) {
+            char output_filename[MAX_FILENAME_LENGTH];
+            strcpy(output_filename, config.matr_out_file);
+            strcat(output_filename, "_orcm.csr");
+            SAFE(   matrix_save(&A, output_filename)    );
+        }
+
 		fprintf(inf, "\tRCM output:      [nonz: %d], [band: %d]\n", A.nonz, matrix_get_band(&A));
 		if ( config.portrait_file != NULL ) matrix_portrait_pattern(&A, config.portrait_file, "_orcm", config.graph_threshold);
 
@@ -168,6 +183,13 @@ int main(int argc, char** argv) {
 
 		SAFE(	matrix_copy(&matr_src, &A)	);
 		SAFE(	rcm(&A, config.threshold)	);
+
+        if (config.save_reordering) {
+            char output_filename[MAX_FILENAME_LENGTH];
+            strcpy(output_filename, config.matr_out_file);
+            strcat(output_filename, "_zrcm.csr");
+            SAFE(   matrix_save(&A, output_filename)    );
+        }
 
 		fprintf(inf, "\tRCM output:      [nonz: %d], [band: %d]\n", A.nonz, matrix_get_band(&A));
 		if ( config.portrait_file != NULL ) matrix_portrait_pattern(&A, config.portrait_file, "_zrcm", config.graph_threshold);

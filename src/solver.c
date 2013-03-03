@@ -105,6 +105,7 @@ int make_ident(TMatrix_DCSR *A, TMatrix_DCSR *LD, TMatrix_DCSR *E)
     for (j = 0; j < size; ++j)
     {
         for (i = 0; i < size; ++i) y[i] = 0;
+        y[j] = A->diag[j];
         for (i = 0; i < size; ++i)
         {
             for (it = A->row_ptr[i]; it < A->row_ptr[i+1]; ++it)
