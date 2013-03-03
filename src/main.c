@@ -133,7 +133,6 @@ int main(int argc, char** argv) {
 
 		TMatrix_DCSR A, LD, E;
 		int neps = 0;
-        char output_filename[MAX_FILENAME_LENGTH];
 
 		SAFE(	matrix_copy(&matr_src, &A)	);
 		SAFE(	rcm(&A, 0)					);
@@ -148,10 +147,13 @@ int main(int argc, char** argv) {
 
         SAFE(   make_ident(&A, &LD, &E)     );
 
-        strcpy(output_filename, config.matr_out_file);
-        strcat(output_filename, "_oide.csr");
-        SAFE(   matrix_save(&E, output_filename)    );
-        matrix_portrait_pattern(&E, config.portrait_file, "_oide", config.graph_threshold);
+        if (config.matr_out_file) {
+            char output_filename[MAX_FILENAME_LENGTH];
+            strcpy(output_filename, config.matr_out_file);
+            strcat(output_filename, "_oide.csr");
+            SAFE(   matrix_save(&E, output_filename)    );
+            matrix_portrait_pattern(&E, config.portrait_file, "_oide", config.graph_threshold);
+        }
 
 		matrix_destroy(&A);
 		matrix_destroy(&LD);
@@ -177,10 +179,13 @@ int main(int argc, char** argv) {
 
         SAFE(   make_ident(&A, &LD, &E)     );
 
-        strcpy(output_filename, config.matr_out_file);
-        strcat(output_filename, "_zide.csr");
-        SAFE(   matrix_save(&E, output_filename)    );
-        matrix_portrait_pattern(&E, config.portrait_file, "_zide", config.graph_threshold);
+        if (config.matr_out_file) {
+            char output_filename[MAX_FILENAME_LENGTH];
+            strcpy(output_filename, config.matr_out_file);
+            strcat(output_filename, "_zide.csr");
+            SAFE(   matrix_save(&E, output_filename)    );
+            matrix_portrait_pattern(&E, config.portrait_file, "_zide", config.graph_threshold);
+        }
 
 		matrix_destroy(&A);
 		matrix_destroy(&LD);
