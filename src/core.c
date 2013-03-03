@@ -17,6 +17,7 @@ int matrix_load(TMatrix_DCSR *matr, const char* filename)
 	int i;
 	real *diag;
 	real *val;
+	float v;
 	int  *col_ind;
 	int  *row_ptr;
 
@@ -46,11 +47,37 @@ int matrix_load(TMatrix_DCSR *matr, const char* filename)
 	}
 
 	// LOAD matrix using `Compressed Row Storage` format
-	for (i = 0; i < size; i++) fscanf(fp, "%f ", diag    + i);	// diagonal matrix items
-	for (i = 0; i < nonz; i++) fscanf(fp, "%f ", val     + i);	// nonzero  matrix items
-	for (i = 0; i < nonz; i++) fscanf(fp, "%d ", col_ind + i);	// item's column index
-	for (i = 0; i < size; i++) fscanf(fp, "%d ", row_ptr + i);	// row ptr offset
+	for (i = 0; i < size; i++) fscanf(fp, "%f ", &v), diag[i] = v;	// diagonal matrix items
+	for (i = 0; i < nonz; i++) fscanf(fp, "%f ", &v), val[i]  = v;	// nonzero  matrix items
+	for (i = 0; i < nonz; i++) fscanf(fp, "%d ", col_ind + i);		// item's column index
+	for (i = 0; i < size; i++) fscanf(fp, "%d ", row_ptr + i);		// row ptr offset
 	row_ptr[size] = nonz;
+
+	fclose(fp);
+
+	return ERROR_NO_ERROR;
+}
+
+int matrix_save(TMatrix_DCSR *matr, const char *filename)
+{
+	int size, nonz;
+    int i;
+    FILE* fp = fopen(filename, "w");
+    if ( fp == NULL ) return ERROR_FILE_IO;
+
+    size = matr->size;
+    nonz = matr->nonz;
+
+    fprintf(fp, "%d %d\n", size, nonz);
+
+	for (i = 0; i < size; i++) fprintf(fp, "%f ", matr->diag[i]);       // diagonal matrix items
+    fprintf(fp, "\n");
+	for (i = 0; i < nonz; i++) fprintf(fp, "%f ", matr->val[i]);        // nonzero  matrix items
+    fprintf(fp, "\n");
+	for (i = 0; i < nonz; i++) fprintf(fp, "%d ", matr->col_ind[i]);    // item's column index
+    fprintf(fp, "\n");
+	for (i = 0; i < size; i++) fprintf(fp, "%d ", matr->row_ptr[i]);    // row ptr offset
+    fprintf(fp, "\n");
 
 	fclose(fp);
 

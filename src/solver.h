@@ -5,8 +5,8 @@
 * File: solver.h
 * Set of matrix operation primitives:
 *	o) w <- Bv, where B = A^-1, A - LDL^T
-*	o) lambda {min, max} A
-*	o) cond(A)
+*	o) make_ident: E` <- A^-1 A, 
+*                   where A^-1 is made w/ cholesky
 ***************************************************/
 
 #include "common.h"
@@ -26,9 +26,8 @@
 
 int matrix_vector_mult(TMatrix_DCSR* /*A*/, real* /*X*/, real* /*Y*/);
 int solver(TMatrix_DCSR* /*LD*/, real* /*Y*/);
-int lambda(TMatrix_DCSR* /*A*/, TMatrix_DCSR* /*LD*/, real* /*l_min*/, real* /*l_max*/);
 
-int matrix_conditinaly(TMatrix_DCSR* /*A*/, TMatrix_DCSR* /*LD*/);
+int make_ident(TMatrix_DCSR* /*A*/, TMatrix_DCSR* /*LD*/, TMatrix_DCSR* /*E*/);
 
 #endif
 

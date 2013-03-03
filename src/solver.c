@@ -79,60 +79,56 @@ int solver(TMatrix_DCSR *LD, real *Y)
 	return ERROR_NO_ERROR;
 }
 
-int lambda(TMatrix_DCSR *A, TMatrix_DCSR *LD, real *l_min, real *l_max)
+// Make: E` <- A^-1 A, where A^-1 is made from cholesky of A
+int make_ident(TMatrix_DCSR *A, TMatrix_DCSR *LD, TMatrix_DCSR *E)
 {
-#define CLEANUP() do { if (x) free(x); if (y) free(y); } while(0)
+#define CLEANUP() do { if (y) free(y); if (ES.val) free(ES.val); } while(0)
 	int size = A->size;
-	int i, iter;
-	real *x, *y;
-	real norm0, norm1, delta;
-	real M, m;
+	int i, j, it;
+    int err;
+	real *y;
+    TMatrix_Simple ES;
 
-	x = (real*)malloc(sizeof(real)*size);
 	y = (real*)malloc(sizeof(real)*size);
+    ES.val = (real*)malloc(sizeof(real)*size*size);
+    ES.size = size;
 
-	if (x == NULL || y == NULL) {
+//matrix_show(LD, 1);
+
+	if (y == NULL || ES.val == NULL) {
 		CLEANUP();
-		fprintf(stderr, "error [lambda]: memory allocation error\n");
+		fprintf(stderr, "error [make_ident]: memory allocation error\n");
 		return ERROR_MEMORY_ALLOCATION;
 	}
 
-#ifdef _OPENMP
-#pragma omp parallel for private(i)
-#endif
-	for (i = 0; i < size; ++i) x[i] = 3*sin(0.3*(i+1));
-	norm1 = vector_normalize(x, size);
+    // y <- A[*, j], y <- (A^-1) y
+    for (j = 0; j < size; ++j)
+    {
+        for (i = 0; i < size; ++i) y[i] = 0;
+        for (i = 0; i < size; ++i)
+        {
+            for (it = A->row_ptr[i]; it < A->row_ptr[i+1]; ++it)
+            {
+                if (A->col_ind[it] == j) {
+                    y[i] = A->val[it];
+//if (FABS(y[i]) > 1e-3) printf("%.2e ", y[i]);
+                    break;
+                }
+            }
+        }
 
-	iter = 0;
-	do {
-		iter++;
+        solver(LD, y);
 
-		norm0 = norm1;
-		matrix_vector_mult(A, x, y);
-		solver(LD, y);
-#ifdef _DEBUG_LEVEL_SOLEVER_2
-printf("[[debug]] (iter: %d) x[0..2] = %.2e; %.2e; %.2e\n", iter, x[0], x[1], x[2]);
-printf("[[debug]] (iter: %d) y[0..2] = %.2e; %.2e; %.2e\n", iter, y[0], y[1], y[2]);
-#endif
-		SWAP(real*, x, y);
-		norm1 = vector_normalize(x, size);
-#ifdef _DEBUG_LEVEL_SOLVER_2
-printf("[[debug]] (iter: %d) norm0 = %.2e, norm1 = %.2e\n", iter, norm0, norm1);
-#endif
+        for (i = 0; i < size; ++i) ES.val[i*size + j] = y[i];
+    }
 
-		delta = FABS(norm1 - norm0);
-	} while( (iter < MAX_ITER) && (delta > LAMBDA_MAX_DELTA) );
-	*l_max = M = norm1;
-#ifdef _DEBUG_LEVEL_SOLVER
-	printf("[debug] {solver}: l_max = %.2e [iter: %d]\n", M, iter);
-#endif
+    err = matrix_convert_simp2dcsr(&ES, E);
+    if (err != ERROR_NO_ERROR) {
+        fprintf(stderr, "error [make_ident]: matrix convert error (%d)\n", err);
+        PRINT_ERROR_MESSAGE(err);
+    }
 
-#undef CLEANUP
-	return ERROR_NO_ERROR;
-}
-
-int matrix_conditinaly(TMatrix_DCSR *A, TMatrix_DCSR *LD)
-{
-	return ERROR_NO_ERROR;
+    CLEANUP();
+    return err;
 }
 
