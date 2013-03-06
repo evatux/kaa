@@ -80,7 +80,7 @@ int solver(TMatrix_DCSR *LD, real *Y)
 }
 
 // Make: E` <- A^-1 A, where A^-1 is made from cholesky of A
-int make_ident(TMatrix_DCSR *A, TMatrix_DCSR *LD, TMatrix_DCSR *E)
+int make_ident(TMatrix_DCSR *A, TMatrix_DCSR *LD, TMatrix_DCSR *E, const char *filename)
 {
 #define CLEANUP() do { if (y) free(y); if (ES.val) free(ES.val); } while(0)
     int size = A->size;
@@ -112,7 +112,6 @@ int make_ident(TMatrix_DCSR *A, TMatrix_DCSR *LD, TMatrix_DCSR *E)
             {
                 if (A->col_ind[it] == j) {
                     y[i] = A->val[it];
-//if (FABS(y[i]) > 1e-3) printf("%.2e ", y[i]);
                     break;
                 }
             }
@@ -125,9 +124,12 @@ int make_ident(TMatrix_DCSR *A, TMatrix_DCSR *LD, TMatrix_DCSR *E)
 
     err = matrix_convert_simp2dcsr(&ES, E);
     if (err != ERROR_NO_ERROR) {
-        fprintf(stderr, "error [make_ident]: matrix convert error (%d)\n", err);
-        PRINT_ERROR_MESSAGE(err);
+       fprintf(stderr, "error [make_ident]: matrix convert error (%d)\n", err);
+       PRINT_ERROR_MESSAGE(err);
     }
+
+    if (filename != NULL)
+        err = matrix_save_symcompact(&ES, filename);
 
     CLEANUP();
     return err;

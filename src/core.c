@@ -84,6 +84,57 @@ int matrix_save(TMatrix_DCSR *matr, const char *filename)
     return ERROR_NO_ERROR;
 }
 
+int matrix_save_symcompact(TMatrix_Simple *matr, const char *filename)
+{
+    int size = matr->size;
+    int i, j, flag;
+    int *value;
+    double mind, maxd;
+    FILE* fp = fopen(filename, "w");
+    if (fp == NULL) return ERROR_FILE_IO;
+
+    value = malloc(sizeof(int)*size);
+    if (value == NULL) {
+        fclose(fp);
+        return ERROR_MEMORY_ALLOCATION;
+    }
+
+    // make small analysis: save only not-only-diagonal part of matrix
+    // plus save min diagonal and max diagonal elements
+    for (i = 0; i < size; i++) {
+        flag = 0;
+        for (j = i; j < size; j++)
+        {
+            if ( ((matr->val[i*size + j] != 0) || (matr->val[j*size + i] != 0)) && (i != j) ) {
+                flag = 1;
+                break;
+            }
+        }
+        if (flag == 0) {
+            if ( mind > FABS(matr->val[i*size+i]) ) mind = FABS(matr->val[i*size+i]);
+            if ( maxd < FABS(matr->val[i*size+i]) ) maxd = FABS(matr->val[i*size+i]);
+        }
+        value[i] = flag;
+    }
+
+    fprintf(fp, "%d\n%.5e\t%.5e\n", size, mind, maxd);
+
+    for (i = 0; i < size; i++)
+    {
+        if (!value[i]) continue;
+
+        for (j = 0; j < size; j++)
+        {
+            if (!value[j]) continue;
+            fprintf(fp, "%.5e ", (matr->val[i*size+j] + matr->val[i*size+j])/2.);
+        }
+        fprintf(fp, "\n");
+    }
+
+    fclose(fp);
+    return ERROR_NO_ERROR;
+}
+
 int matrix_portrait(TMatrix_DCSR *matr, const char *filename, real threshold)
 {
 #ifndef CONFIG_DISABLE_GRAPHICS

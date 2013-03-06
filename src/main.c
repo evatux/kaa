@@ -160,14 +160,15 @@ int main(int argc, char** argv) {
         fprintf(inf, "\tCholesky output: [nonz: %d], [cheps: %e], [neps: %d]\n", 2*LD.nonz, config.cheps_threshold, neps);
         if ( config.portrait_file != NULL ) matrix_portrait_pattern(&LD, config.portrait_file, "_ochl", config.graph_threshold);
 
-        SAFE(   make_ident(&A, &LD, &E)     );
-
         if (config.matr_out_file) {
             char output_filename[MAX_FILENAME_LENGTH];
             strcpy(output_filename, config.matr_out_file);
-            strcat(output_filename, "_oide.csr");
-            SAFE(   matrix_save(&E, output_filename)    );
+            strcat(output_filename, "_oide.sim");
+            SAFE(   make_ident(&A, &LD, &E, output_filename)     );
+//            SAFE(   matrix_save(&E, output_filename)    );
             matrix_portrait_pattern(&E, config.portrait_file, "_oide", config.graph_threshold);
+
+            fprintf(inf, "\tAlmost Id: [minE: ?], [maxE: ?], [cond: ?]\n");
         }
 
         matrix_destroy(&A);
@@ -199,14 +200,15 @@ int main(int argc, char** argv) {
         fprintf(inf, "\tCholesky output: [nonz: %d], [cheps: %e], [neps: %d]\n", 2*LD.nonz, config.cheps_threshold, neps);
         if ( config.portrait_file != NULL ) matrix_portrait_pattern(&LD, config.portrait_file, "_zchl", config.graph_threshold);
 
-        SAFE(   make_ident(&A, &LD, &E)     );
-
         if (config.matr_out_file) {
             char output_filename[MAX_FILENAME_LENGTH];
             strcpy(output_filename, config.matr_out_file);
-            strcat(output_filename, "_zide.csr");
-            SAFE(   matrix_save(&E, output_filename)    );
+            strcat(output_filename, "_zide.sim");
+            SAFE(   make_ident(&A, &LD, &E, output_filename)     );
+//            SAFE(   matrix_save(&E, output_filename)    );
             matrix_portrait_pattern(&E, config.portrait_file, "_zide", config.graph_threshold);
+
+            fprintf(inf, "\tAlmost Id: [minE: ?], [maxE: ?], [cond: ?]\n");
         }
 
         matrix_destroy(&A);

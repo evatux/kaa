@@ -52,6 +52,7 @@ typedef struct {
 //  Matrix & Graph interface
 int  matrix_load(TMatrix_DCSR* /*matr*/, const char* /*filename*/);
 int  matrix_save(TMatrix_DCSR* /*matr*/, const char* /*filename*/);
+int  matrix_save_symcompact(TMatrix_Simple* /*matr*/, const char* /*filename*/);
 int  matrix_portrait(TMatrix_DCSR* /*matr*/, const char* /*filename*/, real /*threshold*/);
 int  matrix_portrait_pattern(TMatrix_DCSR* /*matr*/, const char* /*pattern*/, const char* /*suffix*/, real /*threshold*/);
 

@@ -27,7 +27,7 @@
 int matrix_vector_mult(TMatrix_DCSR* /*A*/, real* /*X*/, real* /*Y*/);
 int solver(TMatrix_DCSR* /*LD*/, real* /*Y*/);
 
-int make_ident(TMatrix_DCSR* /*A*/, TMatrix_DCSR* /*LD*/, TMatrix_DCSR* /*E*/);
+int make_ident(TMatrix_DCSR* /*A*/, TMatrix_DCSR* /*LD*/, TMatrix_DCSR* /*E*/, const char* /*filename*/);
 
 #endif
 
