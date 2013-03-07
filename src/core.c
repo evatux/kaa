@@ -87,7 +87,8 @@ int matrix_save(TMatrix_DCSR *matr, const char *filename)
 int matrix_save_symcompact(TMatrix_Simple *matr, const char *filename)
 {
     int size = matr->size;
-    int i, j, flag;
+    int smallsz = 0;
+    int i, j, flag, global_flag = 0;
     int *value;
     double mind, maxd;
     FILE* fp = fopen(filename, "w");
@@ -99,25 +100,44 @@ int matrix_save_symcompact(TMatrix_Simple *matr, const char *filename)
         return ERROR_MEMORY_ALLOCATION;
     }
 
+    for (i = 0; i < size; i++)
+        for (j = i+1; j < size; j++)
+            matr->val[i*size+j] = matr->val[j*size+i] = (matr->val[i*size+j] + matr->val[j*size+i])/2.;
+
     // make small analysis: save only not-only-diagonal part of matrix
     // plus save min diagonal and max diagonal elements
     for (i = 0; i < size; i++) {
         flag = 0;
-        for (j = i; j < size; j++)
+        for (j = 0; j < size; j++)
         {
-            if ( ((matr->val[i*size + j] != 0) || (matr->val[j*size + i] != 0)) && (i != j) ) {
+            if ( (matr->val[i*size + j] != 0) && (i != j) ) {
                 flag = 1;
                 break;
             }
         }
         if (flag == 0) {
-            if ( mind > FABS(matr->val[i*size+i]) ) mind = FABS(matr->val[i*size+i]);
-            if ( maxd < FABS(matr->val[i*size+i]) ) maxd = FABS(matr->val[i*size+i]);
+            if (!global_flag) {
+                mind = FABS(matr->val[i*size+i]);
+                maxd = FABS(matr->val[i*size+i]);
+                global_flag = 1;
+            } else
+            {
+                if ( mind > FABS(matr->val[i*size+i]) ) { mind = FABS(matr->val[i*size+i]); printf("%d: %.2e\t", i, mind); }
+                if ( maxd < FABS(matr->val[i*size+i]) ) maxd = FABS(matr->val[i*size+i]);
+            }
         }
         value[i] = flag;
+//            printf("%d: %.2e\t", i, matr->val[i*size+i]);
+
     }
 
-    fprintf(fp, "%d\n%.5e\t%.5e\n", size, mind, maxd);
+    for (i = 0; i < size; i++) if (value[i]) smallsz++;
+    fprintf(fp, "%d\n", smallsz);
+
+    if (!global_flag)
+        fprintf(fp, "%.5e\t%.5e\n", 0., 0.);
+    else
+        fprintf(fp, "%.5e\t%.5e\n", mind, maxd);
 
     for (i = 0; i < size; i++)
     {
@@ -126,12 +146,14 @@ int matrix_save_symcompact(TMatrix_Simple *matr, const char *filename)
         for (j = 0; j < size; j++)
         {
             if (!value[j]) continue;
-            fprintf(fp, "%.5e ", (matr->val[i*size+j] + matr->val[i*size+j])/2.);
+            fprintf(fp, "%.5e ", matr->val[i*size+j]);
         }
         fprintf(fp, "\n");
     }
 
     fclose(fp);
+    free(value);
+
     return ERROR_NO_ERROR;
 }
 
