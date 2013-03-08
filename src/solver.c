@@ -52,7 +52,7 @@ int solver(TMatrix_DCSR *LD, real *Y)
 
     // Y <- (L^-1)Y
     for (i = 0; i < LD->size; ++i) {
-        for (j = LD->row_ptr[i]; LD->col_ind[j] < i && j < LD->row_ptr[i+1]; ++j)
+        for (j = LD->row_ptr[i]; (LD->col_ind[j] < i) && (j < LD->row_ptr[i+1]); ++j)
             Y[i] -= LD->val[j] * Y[LD->col_ind[j]];
     }
 
@@ -60,19 +60,22 @@ int solver(TMatrix_DCSR *LD, real *Y)
 #ifdef _OPENMP
 #pragma omp parallel for private(i) shared(dbz)
 #endif
-    for (i = 0; i < LD->size; ++i) 
+    for (i = 0; i < LD->size; ++i)
+    {
         if ( FABS(LD->diag[i]) < INV_EPS ) dbz = 1;
         else Y[i] /= LD->diag[i];
-    if (dbz == 1) {
+
+        if (dbz == 1) {
 #ifdef _DEBUG_LEVEL_SOLVER
-        printf("[debug] {solver}: division by zero found\n");
+            printf("[debug] {solver}: division by zero found\n");
 #endif
-        return ERROR_DIV_BY_ZERO;
+            return ERROR_DIV_BY_ZERO;
+        }
     }
 
     // Y <- (L^-T)Y
     for (i = LD->size-1; i >= 0; --i) {
-        for (j = LD->row_ptr[i]; LD->col_ind[j] < i && j < LD->row_ptr[i+1]; ++j) 
+        for (j = LD->row_ptr[i]; (LD->col_ind[j] < i) && (j < LD->row_ptr[i+1]); ++j) 
             Y[LD->col_ind[j]] -= LD->val[j] * Y[i];
     }
 
