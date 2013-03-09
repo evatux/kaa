@@ -30,6 +30,7 @@ typedef struct {
     real    threshold;
     real    graph_threshold;
     real    cheps_threshold;
+    int     fmc_flag;
 } config_t;
 
 void print_usage_and_exit() {
@@ -43,6 +44,7 @@ void print_usage_and_exit() {
     printf("  %-20s %-10s\t%s\n", "-o|--original_rcm", "", "make only original rcm");
     printf("  %-20s %-10s\t%s\n", "-m|--modified_rcm", "", "make only modified rcm");
     printf("  %-20s %-10s\t%s\n", "-r|--reordering_save", "", "save reordering matrix in csr format (matrix-out-pattern should be defined)");
+    printf("  %-20s %-10s\t%s\n", "-f|--florida_file", "", "matrix-in-file is represented in florida collection format (.mtx)");
 
     exit(2);
 }
@@ -69,6 +71,7 @@ void load_config(int argc, char** argv, config_t *config) {
     config->make_original   = 1;
     config->make_modified   = 1;
     config->save_reordering = 0;
+    config->fmc_flag        = 0;
 
     if ( argc >= 3 && argv[2][0] != '-' )
     {
@@ -108,12 +111,16 @@ void load_config(int argc, char** argv, config_t *config) {
         {
             config->make_modified = 1;  config->make_original = 0;
         } else
-        if (!strcmp(argv[cur_opt], "--reordering_save") || !strcmp(argv[cur_opt], "-s"))
+        if (!strcmp(argv[cur_opt], "--reordering_save") || !strcmp(argv[cur_opt], "-r"))
         {
             if (!config->matr_out_file) print_usage_and_exit(argv[0]);
             config->save_reordering = 1;
         } else
+        if (!strcmp(argv[cur_opt], "--florida_file") || !strcmp(argv[cur_opt], "-f"))
         {
+            config->fmc_flag = 1;
+        } else
+         {
             print_usage_and_exit(argv[0]);
         }
     }
@@ -131,7 +138,11 @@ int main(int argc, char** argv) {
 
     TMatrix_DCSR matr_src;
 
-    SAFE( matrix_load(&matr_src, config.matr_in_file) ) ;
+    if (config.fmc_flag == 0)
+        SAFE( matrix_load(&matr_src, config.matr_in_file) ) ;
+    else 
+        SAFE( matrix_load_fmc(&matr_src, config.matr_in_file) ) ;
+
 
     fprintf(inf, "Source matrix:       [size: %d], [nonz: %d], [band: %d]\n", matr_src.size, matr_src.nonz, matrix_get_band(&matr_src));
     if ( config.portrait_file != NULL ) matrix_portrait_pattern(&matr_src, config.portrait_file, "_asrc", config.graph_threshold);

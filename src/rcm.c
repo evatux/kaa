@@ -153,7 +153,7 @@ int find_permutation(TWGraph *gr, int **_perm, int **_invp, real threshold)
     int err = ERROR_NO_ERROR;
     int root;
     int *perm, *invp;
-    
+
     //  -2   -- not yet seen
     //  -1   -- already in queue
     //  0..n -- already numbered 
@@ -256,7 +256,7 @@ graph_show(gr);
 
         fprintf(stderr, "error [graph_reorder]: memory allocation error\n");
         return ERROR_MEMORY_ALLOCATION;
-    }   
+    }
 
     // let's reorder
     ci = 0;

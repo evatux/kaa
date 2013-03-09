@@ -40,6 +40,25 @@ int test_converter() {
     return (pass==1)?ERROR_NO_ERROR:19;
 }
 
+int test_cholesky() {
+    TMatrix_Simple A;
+    TMatrix_DCSR   M, LD, E;
+    int n;
+
+    A.size = 2;
+    A.val = malloc(sizeof(real)*A.size*A.size);
+    A.val[0] = 0; A.val[1] = 1;
+    A.val[2] = 1; A.val[3] = 1;
+
+    matrix_convert_simp2dcsr(&A, &M);
+    cholesky_decomposition(&M, &LD, 0.001, &n);
+    make_ident(&M, &LD, &E, NULL);
+
+    matrix_show(&E, 1);
+
+    return 1;
+}
+
 int test_solver() {
 #define CLEANUP() \
     {                                   \
@@ -123,6 +142,7 @@ int test_solver() {
 #undef CLEANUP
 }
 
+#if 0
 int test_lambda() {
     TMatrix_Simple SM;
     TMatrix_DCSR   A, LD;
@@ -162,6 +182,7 @@ int test_lambda() {
     printf("TEST :: %10s :: l_min = %.2e, l_max = %.2e\n", "lambda", m, M);
     return ERROR_NO_ERROR;
 }
+#endif
 
 int main(int argc, char** argv) {
     int err, i;
@@ -183,7 +204,7 @@ l2:
     if (err != ERROR_NO_ERROR) printf("TEST :: %10s :: FAILED\n", "solver"), exit(1);
 
 l3:
-    err = test_lambda();
+    err = test_cholesky();
     if (err != ERROR_NO_ERROR) printf("TEST :: %10s :: FAILED\n", "lambda"), exit(1);
 
     printf("TEST PASSED\n");

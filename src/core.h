@@ -44,13 +44,14 @@ typedef struct {
     real *val;
     int  *col_ind;
     int  *row_ptr;
-    
+
     int  nonz;
     int  size;
 } TMatrix_DCSR;
 
 //  Matrix & Graph interface
 int  matrix_load(TMatrix_DCSR* /*matr*/, const char* /*filename*/);
+int  matrix_load_fmc(TMatrix_DCSR* /*matr*/, const char* /*filename*/);
 int  matrix_save(TMatrix_DCSR* /*matr*/, const char* /*filename*/);
 int  matrix_save_symcompact(TMatrix_Simple* /*matr*/, const char* /*filename*/);
 int  matrix_portrait(TMatrix_DCSR* /*matr*/, const char* /*filename*/, real /*threshold*/);

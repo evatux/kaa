@@ -13,6 +13,7 @@
 //#define _DEBUG_LEVEL_0
 //#define _DEBUG_LEVEL_1
 //#define _DEBUG_LEVEL_2
+#define _DEBUG_LEVEL_CHOLESKY
 #define _DEBUG_LEVEL_SOLVER
 #endif
 

@@ -58,6 +58,50 @@ int matrix_load(TMatrix_DCSR *matr, const char* filename)
     return ERROR_NO_ERROR;
 }
 
+int matrix_load_fmc(TMatrix_DCSR *matr, const char* filename)
+{
+    int size, size2, nonz;
+    int it, i, j;
+    int err;
+    float v;
+    char str[MAX_FILENAME_LENGTH];
+    TMatrix_Simple A;
+    FILE* fp = fopen(filename, "r");
+    if ( fp == NULL ) return ERROR_FILE_IO;
+
+    while (fgets(str, MAX_FILENAME_LENGTH, fp))
+    {
+        if (str[0] == '%') continue;
+        else break;
+    }
+
+    sscanf(str, "%d %d %d", &size, &size2, &nonz);
+    if (size != size2) {
+        fclose(fp);
+        return ERROR_FILE_IO;
+    }
+    A.size = size;
+
+    A.val = (real*)malloc(sizeof(real)*size*size);
+    if (A.val == NULL ) {
+        fclose(fp);
+        return ERROR_MEMORY_ALLOCATION;
+    }
+
+    for (it = 0; it < nonz; ++it) {
+        fscanf(fp, "%d %d %f", &i, &j, &v);
+        i--; j--;
+        A.val[i*size+j] = A.val[j*size+i] = v;
+    }
+
+    fclose(fp);
+
+    err = matrix_convert_simp2dcsr(&A, matr);
+    matrix_simp_destroy(&A);
+
+    return err;
+}
+
 int matrix_save(TMatrix_DCSR *matr, const char *filename)
 {
     int size, nonz;

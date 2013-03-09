@@ -36,9 +36,13 @@ int cholesky_decomposition(TMatrix_DCSR *A, TMatrix_DCSR *LD, const real cheps, 
 
     // Cholesky decomposition
     for (j = 0; j < size; ++j) {
+#ifdef _DEBUG_LEVEL_CHOLESKY
 printf("%.2e: ", LS[j*size+j]);
+#endif
         ljj = LS[j*size+j]; for (k=0; k<j; ++k) {
+#ifdef _DEBUG_LEVEL_CHOLESKY
             if (LS[j*size+k]*LS[j*size+k]*LS[k*size+k] != 0.) printf("%.2e ", LS[j*size+k]*LS[j*size+k]*LS[k*size+k]);
+#endif
             ljj -= LS[j*size+k]*LS[j*size+k]*LS[k*size+k];
         }
 //EXCEPTION(sum < 0, "l[j,j] < 0 ; j = %d\n", j, ERROR_NEGATIVE_SQRT);
@@ -47,8 +51,9 @@ printf("%.2e: ", LS[j*size+j]);
             ljj = LS[j*size+j] = cheps*SGN(ljj);
             *neps += 1;
         } else LS[j*size+j] = ljj;
+#ifdef _DEBUG_LEVEL_CHOLESKY
 printf(" --> %.2e\n", LS[j*size+j]);
-
+#endif
         for (i = j+1; i < size; ++i) {
             sum = 0.; for (k=0; k<j; ++k) sum += LS[i*size+k]*LS[j*size+k]*LS[k*size+k];
             LS[i*size+j] = (LS[i*size+j] - sum) / ljj; 
