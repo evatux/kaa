@@ -13,9 +13,12 @@
 //#define _DEBUG_LEVEL_0
 //#define _DEBUG_LEVEL_1
 //#define _DEBUG_LEVEL_2
-#define _DEBUG_LEVEL_CHOLESKY
-#define _DEBUG_LEVEL_SOLVER
+#define _DEBUG_LEVEL_MD
+//#define _DEBUG_LEVEL_CHOLESKY
+//#define _DEBUG_LEVEL_SOLVER
 #endif
+
+#define _ZRCM_SMART
 
 #define PRINT_ZEROES
 #define MAX_FILENAME_LENGTH 1024
@@ -45,6 +48,7 @@ typedef float real;
 #endif
 
 #define MIN2(x,y) (((x)<(y))?(x):(y))
+#define MAX2(x,y) (((x)>(y))?(x):(y))
 #define SWAP(_T,__x,__y) do { _T __t = __x; __x = __y; __y = __t; } while(0)
 
 // define ERROR codes

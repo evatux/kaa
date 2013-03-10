@@ -5,8 +5,12 @@
 
 #include "core.h"
 #include "rcm.h"
+#include "md.h"
 #include "cholesky.h"
 #include "solver.h"
+
+#define RCM 1
+#define MD  2
 
 #define SAFE( f ) \
     do {                                                \
@@ -31,6 +35,7 @@ typedef struct {
     real    graph_threshold;
     real    cheps_threshold;
     int     fmc_flag;
+    int     algorithm;
 } config_t;
 
 void print_usage_and_exit() {
@@ -45,6 +50,7 @@ void print_usage_and_exit() {
     printf("  %-20s %-10s\t%s\n", "-m|--modified_rcm", "", "make only modified rcm");
     printf("  %-20s %-10s\t%s\n", "-r|--reordering_save", "", "save reordering matrix in csr format (matrix-out-pattern should be defined)");
     printf("  %-20s %-10s\t%s\n", "-f|--florida_file", "", "matrix-in-file is represented in florida collection format (.mtx)");
+    printf("  %-20s %-10s\t%s\n", "-a|--algorithm", "[rcm|md]", "set reordering algorithm (rcm by default)");
 
     exit(2);
 }
@@ -72,6 +78,7 @@ void load_config(int argc, char** argv, config_t *config) {
     config->make_modified   = 1;
     config->save_reordering = 0;
     config->fmc_flag        = 0;
+    config->algorithm       = RCM;
 
     if ( argc >= 3 && argv[2][0] != '-' )
     {
@@ -120,7 +127,19 @@ void load_config(int argc, char** argv, config_t *config) {
         {
             config->fmc_flag = 1;
         } else
-         {
+        if (!strcmp(argv[cur_opt], "--algorithm") || !strcmp(argv[cur_opt], "-a"))
+        {
+            cur_opt++;
+
+            if (!strcmp(argv[cur_opt], "rcm"))
+                config->algorithm = RCM;
+            else
+            if (!strcmp(argv[cur_opt], "md"))
+                config->algorithm = MD;
+            else
+                print_usage_and_exit(argv[0]);
+        } else
+        {
             print_usage_and_exit(argv[0]);
         }
     }
@@ -130,10 +149,35 @@ int main(int argc, char** argv) {
     config_t config;
     load_config(argc, argv, &config);
 
+    char ALG[10];
+    char alg[10];
+    char oalg[10];
+    char zalg[10];
+    char output_filename[MAX_FILENAME_LENGTH];
+    int (*reorderer) (TMatrix_DCSR*, real);
+
+    if (config.algorithm == RCM)
+    {
+        strcpy(ALG, "RCM");
+        strcpy(alg, "rcm");
+        strcpy(oalg, "orcm");
+        strcpy(zalg, "zrcm");
+        reorderer = rcm;
+    } else
+    if (config.algorithm == MD)
+    {
+        strcpy(ALG, "MD");
+        strcpy(alg, "md");
+        strcpy(oalg, "omd");
+        strcpy(zalg, "zmd");
+        reorderer = md;
+    }
+
     FILE* inf = (config.info_file == NULL)?stdout:fopen(config.info_file, "w");
     if (inf == NULL) inf = stdout;
-    fprintf(inf, "RCM v0.1\nSource file: %s\n", config.matr_in_file);
-    fprintf(inf, "RCM threshold: %.2e\nGraph threshold: %.2e\n", config.threshold, config.graph_threshold);
+    fprintf(inf, "Reordering\nSource file: %s\n", config.matr_in_file);
+    fprintf(inf, "Algorithm: %s\n", ALG);
+    fprintf(inf, "Threshold: %.2e\nGraph threshold: %.2e\n", config.threshold, config.graph_threshold);
     fprintf(inf, "Cholesky threshold: %.2e\n\n", config.cheps_threshold);
 
     TMatrix_DCSR matr_src;
@@ -145,86 +189,77 @@ int main(int argc, char** argv) {
 
 
     fprintf(inf, "Source matrix:       [size: %d], [nonz: %d], [band: %d]\n", matr_src.size, matr_src.nonz, matrix_get_band(&matr_src));
-    if ( config.portrait_file != NULL ) matrix_portrait_pattern(&matr_src, config.portrait_file, "_asrc", config.graph_threshold);
+    if ( config.portrait_file != NULL ) matrix_portrait_pattern(&matr_src, config.portrait_file, "a", "src", config.graph_threshold);
 
     if (config.make_original) {
-        fprintf(inf, "\n=============[ Original RCM ]=============\n");
+        fprintf(inf, "\n=============[ Original %s ]=============\n", ALG);
 
         TMatrix_DCSR A, LD, E;
         int neps = 0;
 
         SAFE(   matrix_copy(&matr_src, &A)  );
-        SAFE(   rcm(&A, 0)                  );
+        SAFE(   reorderer(&A, 0)            );
 
         if (config.save_reordering) {
-            char output_filename[MAX_FILENAME_LENGTH];
-            strcpy(output_filename, config.matr_out_file);
-            strcat(output_filename, "_orcm.csr");
+            sprintf(output_filename, "%s_%s.csr", config.matr_out_file, oalg);
             SAFE(   matrix_save(&A, output_filename)    );
         }
 
-        fprintf(inf, "\tRCM output:      [nonz: %d], [band: %d]\n", A.nonz, matrix_get_band(&A));
-        if ( config.portrait_file != NULL ) matrix_portrait_pattern(&A, config.portrait_file, "_orcm", config.graph_threshold);
+        fprintf(inf, "\tOutput:      [nonz: %d], [band: %d]\n", A.nonz, matrix_get_band(&A));
+        if ( config.portrait_file != NULL ) matrix_portrait_pattern(&A, config.portrait_file, oalg, "",  config.graph_threshold);
 
         SAFE(   cholesky_decomposition(&A, &LD, config.cheps_threshold, &neps)  );
 
         fprintf(inf, "\tCholesky output: [nonz: %d], [cheps: %e], [neps: %d]\n", 2*LD.nonz, config.cheps_threshold, neps);
-        if ( config.portrait_file != NULL ) matrix_portrait_pattern(&LD, config.portrait_file, "_ochl", config.graph_threshold);
+        if ( config.portrait_file != NULL ) matrix_portrait_pattern(&LD, config.portrait_file, oalg, "chl", config.graph_threshold);
 
         if (config.matr_out_file) {
-            char output_filename[MAX_FILENAME_LENGTH];
-            strcpy(output_filename, config.matr_out_file);
-            strcat(output_filename, "_oide.sim");
+            sprintf(output_filename, "%s_%s_%s.sim", config.matr_out_file, oalg, "ide");
             SAFE(   make_ident(&A, &LD, &E, output_filename)     );
 //            SAFE(   matrix_save(&E, output_filename)    );
-            matrix_portrait_pattern(&E, config.portrait_file, "_oide", config.graph_threshold);
+            matrix_portrait_pattern(&E, config.portrait_file, oalg, "ide", config.graph_threshold);
 
             fprintf(inf, "\tAlmost Id: [minE: ?], [maxE: ?], [cond: ?]\n");
         }
 
         matrix_destroy(&A);
         matrix_destroy(&LD);
-        matrix_destroy(&E);
+        if (config.matr_out_file) matrix_destroy(&E);
     }
     if (config.make_modified) {
-        fprintf(inf, "\n=============[ Modified RCM ]=============\n");
+        fprintf(inf, "\n=============[ Modified %s ]=============\n", ALG);
 
         TMatrix_DCSR A, LD, E;
         int neps = 0;
-        char output_filename[MAX_FILENAME_LENGTH];
 
-        SAFE(   matrix_copy(&matr_src, &A)  );
-        SAFE(   rcm(&A, config.threshold)   );
+        SAFE( matrix_copy(&matr_src, &A)        );
+        SAFE( reorderer(&A, config.threshold)   );
 
         if (config.save_reordering) {
-            char output_filename[MAX_FILENAME_LENGTH];
-            strcpy(output_filename, config.matr_out_file);
-            strcat(output_filename, "_zrcm.csr");
+            sprintf(output_filename, "%s_%s.csr", config.matr_out_file, zalg);
             SAFE(   matrix_save(&A, output_filename)    );
         }
 
-        fprintf(inf, "\tRCM output:      [nonz: %d], [band: %d]\n", A.nonz, matrix_get_band(&A));
-        if ( config.portrait_file != NULL ) matrix_portrait_pattern(&A, config.portrait_file, "_zrcm", config.graph_threshold);
+        fprintf(inf, "\tOutput:      [nonz: %d], [band: %d]\n", A.nonz, matrix_get_band(&A));
+        if ( config.portrait_file != NULL ) matrix_portrait_pattern(&A, config.portrait_file, zalg, "", config.graph_threshold);
 
         SAFE(   cholesky_decomposition(&A, &LD, config.cheps_threshold, &neps)  );
 
         fprintf(inf, "\tCholesky output: [nonz: %d], [cheps: %e], [neps: %d]\n", 2*LD.nonz, config.cheps_threshold, neps);
-        if ( config.portrait_file != NULL ) matrix_portrait_pattern(&LD, config.portrait_file, "_zchl", config.graph_threshold);
+        if ( config.portrait_file != NULL ) matrix_portrait_pattern(&LD, config.portrait_file, zalg, "chl", config.graph_threshold);
 
         if (config.matr_out_file) {
-            char output_filename[MAX_FILENAME_LENGTH];
-            strcpy(output_filename, config.matr_out_file);
-            strcat(output_filename, "_zide.sim");
+            sprintf(output_filename, "%s_%s_%s.sim", config.matr_out_file, zalg, "ide");
             SAFE(   make_ident(&A, &LD, &E, output_filename)     );
 //            SAFE(   matrix_save(&E, output_filename)    );
-            matrix_portrait_pattern(&E, config.portrait_file, "_zide", config.graph_threshold);
+            matrix_portrait_pattern(&E, config.portrait_file, zalg, "ide", config.graph_threshold);
 
             fprintf(inf, "\tAlmost Id: [minE: ?], [maxE: ?], [cond: ?]\n");
         }
 
         matrix_destroy(&A);
         matrix_destroy(&LD);
-        matrix_destroy(&E);
+        if (config.matr_out_file) matrix_destroy(&E);
     }
 
     matrix_destroy(&matr_src);

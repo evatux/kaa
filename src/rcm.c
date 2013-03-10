@@ -164,7 +164,8 @@ int find_permutation(TWGraph *gr, int **_perm, int **_invp, real threshold)
     perm = *_perm;
     invp = *_invp;
 
-    int v, g, i, s = 0;
+    int v, g, i, gg, gi, s = 0;
+    int include_flag;
     TQueue queue;
     queue_init(&queue);
 
@@ -184,10 +185,30 @@ int find_permutation(TWGraph *gr, int **_perm, int **_invp, real threshold)
 
             for (i = gr->xadj[v]; i < gr->xadj[v+1]; i++) {
                 g = gr->adjncy[i];
-                if ( invp[g] < 0 && ( FABS(gr->wvert[g]) < MIN2(threshold, FABS(gr->wvert[v])) ) ) {
+                if ( ( invp[g] < 0 ) && ( FABS(gr->wvert[g]) < MIN2(threshold, FABS(gr->wvert[v])) ) ) {
+                    // g - candidate for including in front of queue
+#ifdef _ZRCM_SMART
+                    include_flag = 1;
+                    for (gi = gr->xadj[g]; gi < gr->xadj[g+1]; gi++) {
+                        gg = gr->adjncy[gi];
+                        if ( (invp[gg] < 0) && (gg != v) && ( FABS(gr->wvert[gg]) > MAX2(threshold, FABS(gr->wvert[g])) ) )
+                        {
+                            include_flag = 0;
+                            break;
+                        }
+                    }
+
+                    if (include_flag)
+                    {
+                        stack_push(&queue, v);
+                        v = g;
+                    }
+                    break;
+#else
                     stack_push(&queue, v);
                     v = g;
                     break;
+#endif
                 }
             }
 

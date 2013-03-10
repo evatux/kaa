@@ -209,12 +209,10 @@ int matrix_portrait(TMatrix_DCSR *matr, const char *filename, real threshold)
     return ERROR_UNIMPLEMENTED;
 }
 
-int matrix_portrait_pattern(TMatrix_DCSR *matr, const char *pattern, const char *suffix, real threshold)
+int matrix_portrait_pattern(TMatrix_DCSR *matr, const char *pattern, const char *modifier, const char *suffix, real threshold)
 {
     char str[MAX_FILENAME_LENGTH];
-    strcpy(str, pattern);
-    strcat(str, suffix);
-    strcat(str, ".png");
+    sprintf(str, "%s_%s_%s.png", pattern, modifier, suffix);
     return matrix_portrait(matr, str, threshold);
 }
 
@@ -357,7 +355,7 @@ int build_graph(TWGraph *gr, TMatrix_DCSR *matr)
 
         fprintf(stderr, "error [graph_build]: memory allocation error\n");
         return ERROR_MEMORY_ALLOCATION;
-    }   
+    }
 
     for (i = 0; i < size; i++) wvert[i] = matr->diag[i];        // copy diagonal item --> vertices weight
 

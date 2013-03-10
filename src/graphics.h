@@ -13,9 +13,9 @@
 #define MAX_PNG_SIZE 1024
 
 #ifdef _TEST_DOUBLE
-#define GRAPH_ZERO_THRESHOLD 1e-12
+#define GRAPH_ZERO_THRESHOLD 1e-7
 #else
-#define GRAPH_ZERO_THRESHOLD 1e-8
+#define GRAPH_ZERO_THRESHOLD 1e-4
 #endif
 
 // define colors (r,g,b)
