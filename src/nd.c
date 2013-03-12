@@ -67,7 +67,7 @@ static int nd_for_subgraph(TWGraph *gr, int start_vertex, int *perm, int *invp, 
 printf("[nd] graph_level starts\n");
     graph_level(gr, root, invp, ind_ptr, level, &n);
 printf("[nd] n = %d\n", n);
-    if (n <= 2) {   //  S <-- C
+    if (n <= 3) {   //  S <-- C
         int cl;
         for (cl = 0; cl < n; cl++)
         {
@@ -82,7 +82,7 @@ printf("[nd] n = %d\n", n);
     }
     else            //  S <-- L[n/2+1]
     {
-        int j = n/2 + 1;
+        int j = n/2;
         int include_flag;
         int ii, jj;
 
