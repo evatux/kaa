@@ -43,98 +43,12 @@ static int perm_get_free_index(int size, int *invp)
     return -1;
 }
 
-static int find_periphery_in_subgraph(TWGraph *gr, int *per)
-{
-    int i;
-    int level;
-    int max_level, max_vertex, min_neighbour;
-    int glob_max_level, glob_max_vertex;
-    int viewed;
-    int xadj_start, xadj_end; 
-    int *vertex_level = (int*)malloc(sizeof(int)*(gr->size));
-
-    if ( NULL == vertex_level ) {
-        fprintf(stderr, "error [find_periphery_in_subgraph]: memory allocation error\n");
-        return ERROR_MEMORY_ALLOCATION;
-    }
-
-    int g, s;
-    int *xadj, *adjncy;
-    xadj   = gr->xadj;
-    adjncy = gr->adjncy;
-
-    TQueue queue;
-    queue_init(&queue);
-
-    max_level  = 1;
-    max_vertex = *per;
-
-    do {
-        memset(vertex_level, 0, sizeof(int)*(gr->size));
-//      for (i = 0; i < gr->size; i++) vertex_level[i] = 0;
-
-        glob_max_level  = max_level;
-        glob_max_vertex = max_vertex;
-
-        // Set level for first vertex equals 1
-        queue_push(&queue, glob_max_vertex);
-        vertex_level[glob_max_vertex] = 1;
-
-        // Set maxmin variables
-        max_level     = 1;
-        max_vertex    = glob_max_vertex;
-        min_neighbour = gr->size;
-        viewed = 1;
-
-        while (queue_pop(&queue, &g)) {
-            level = vertex_level[g];                // parent level
-
-            xadj_start = xadj[g];
-            xadj_end   = xadj[g+1];
-
-            for (i = xadj_start; i < xadj_end; i++) {
-                s = adjncy[i];
-                if (!vertex_level[s]) {
-                    viewed++;                       // one more vertex is viewed now
-                    vertex_level[s] = level + 1;    // increasing level
-                    queue_push(&queue, s);          // will 
-                }
-            }
-
-            if (viewed == gr->size) {               // smart thing to decrease number of operations
-                if (level > max_level) {            // search for vertex with max level
-                    max_level     = level;
-                    max_vertex    = g;
-                    min_neighbour = xadj_end - xadj_start;
-                }
-                                                    // but with minimal number of neighbours
-                if ( (level == max_level) && (xadj_end - xadj_start < min_neighbour) ) {
-                    max_vertex = g;
-                    min_neighbour = xadj_end - xadj_start;
-                }
-            }
-        }
-#ifdef _DEBUG_LEVEL_1
-        printf("[debug(1)]{find_periphery_in_subgraph}: current max vertex: %d [level:%d]\n", max_vertex, max_level);
-#endif
-    } while (max_level > glob_max_level);           // repeat until glob_max_level isn't changed
-
-#ifdef _DEBUG_LEVEL_1
-    printf("[debug(1)]{find_periphery_in_subgraph}: glob_max_level: %d, periphery: %d\n", glob_max_level, glob_max_vertex);
-#endif
-
-    free(vertex_level);
-
-    *per = glob_max_vertex;
-    return ERROR_NO_ERROR;
-}
-
 static int find_periphery(TWGraph *gr, int *invp)
 {
     int err = ERROR_NO_ERROR;
     int start_vertex = perm_get_free_index(gr->size, invp);
     if (start_vertex == -1) return -1;
-    err = find_periphery_in_subgraph(gr, &start_vertex);
+    err = find_periphery_in_subgraph(gr, &start_vertex, NULL);
     if (err != ERROR_NO_ERROR) {
         fprintf(stderr, "{find_periphery}: find_periphery_in_subgraph exit with error code: %d\n", err);
         return -1;
@@ -142,7 +56,7 @@ static int find_periphery(TWGraph *gr, int *invp)
     return start_vertex;
 }
 
-int find_permutation(TWGraph *gr, int **_perm, int **_invp, real threshold)
+static int find_permutation(TWGraph *gr, int **_perm, int **_invp, real threshold)
 {
 // Making permututation vector
 //
@@ -247,66 +161,6 @@ int find_permutation(TWGraph *gr, int **_perm, int **_invp, real threshold)
         for (__i = 0; __i < gr->size; __i++) printf("%4d ", invp[__i]);
         printf("\n");
 #endif
-
-    return ERROR_NO_ERROR;
-}
-
-// REORDERING graph
-
-int graph_reorder(TWGraph *gr, int *perm, int *invp)
-{
-    real *wvert, *wedge;
-    int  *adjncy, *xadj;
-    int  i, j, ci, g;
-
-#ifdef _DEBUG_LEVEL_1
-printf("[debug(1)]{graph_reorder}: INPUT graph\n");
-graph_show(gr);
-#endif
-
-    wedge  = (real*)malloc(sizeof(real)*(gr->nonz));
-    adjncy = ( int*)malloc(sizeof( int)*(gr->nonz));
-    xadj   = ( int*)malloc(sizeof( int)*(gr->size+1));
-    wvert  = (real*)malloc(sizeof(real)*(gr->size));
-
-    if ( NULL == wedge || NULL == adjncy || NULL == xadj || NULL == wvert) {
-        if (  wedge ) free( wedge);
-        if ( adjncy ) free(adjncy);
-        if (   xadj ) free(  xadj);
-        if (  wvert ) free( wvert);
-
-        fprintf(stderr, "error [graph_reorder]: memory allocation error\n");
-        return ERROR_MEMORY_ALLOCATION;
-    }
-
-    // let's reorder
-    ci = 0;
-    for (i = 0; i < gr->size; i++) {                    // run over all rows
-        wvert[i] = gr->wvert[perm[i]];                  // copy vertices weight
-        xadj[i] = ci;
-        for (j=gr->xadj[perm[i]]; j<gr->xadj[perm[i]+1]; j++) {     // run over all neighbours
-            g = gr->adjncy[j];
-            adjncy[ci] = invp[g];                       // make edge
-            wedge[ci]  = gr->wedge[j];                  // set  edge weight
-            ci++;
-        }
-    }
-    xadj[i] = ci;                                       // xadj[size] = nonz
-
-#ifdef _DEBUG_LEVEL_1
-printf("[debug(1)]{graph_reorder}: REORDERED graph\n");
-graph_show(gr);
-#endif
-
-    free(gr->wedge);
-    free(gr->adjncy);
-    free(gr->xadj);
-    free(gr->wvert);
-
-    gr->wedge  = wedge;
-    gr->adjncy = adjncy;
-    gr->xadj   = xadj;
-    gr->wvert  = wvert;
 
     return ERROR_NO_ERROR;
 }

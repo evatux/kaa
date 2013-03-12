@@ -5,5 +5,7 @@
     --threshold 0.1          \
     --graph_threshold 1      \
     --info_file ../output/stokes_3_1.log  \
-    --png ../output/stokes_3_1
+    --png ../output/stokes_3_1            \
+    --algorithm nd           \
+    --original_only
 

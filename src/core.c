@@ -332,6 +332,215 @@ int matrix_get_band(TMatrix_DCSR *matr)
     return band;
 }
 
+int graph_level(TWGraph *gr, int vertex, int *excepted, int *ind_ptr, int *level, int *level_number)
+{
+    int size = gr->size;
+    int i, g, s;
+    int cur_level, cur_level_num;
+    int *_level;
+    int *xadj, *adjncy;
+    xadj   = gr->xadj;
+    adjncy = gr->adjncy;
+
+    TQueue queue, queue2;
+    queue_init(&queue);
+    queue_init(&queue2);
+
+    _level = (int*)malloc(sizeof(int)*size);
+    if ( NULL == _level ) {
+        fprintf(stderr, "error [graph_level]: memory allocation error\n");
+        if (_level) free(_level);
+        return ERROR_MEMORY_ALLOCATION;
+    }
+
+    for (i = 0; i < size; ++i)
+        _level[i]   = -2;
+
+    _level[vertex] = 0;
+    level[0] = vertex;
+    ind_ptr[0] = 0;
+    cur_level = 0;
+    cur_level_num = 1;
+
+    queue_push(&queue, vertex);
+
+    while (cur_level_num != 0)
+    {
+        ind_ptr[cur_level+1] = ind_ptr[cur_level] + cur_level_num;
+        cur_level++;
+        cur_level_num = 0;
+
+        while (queue_pop(&queue, &s))
+        {
+            for (i = xadj[s]; i < xadj[s+1]; ++i)
+            {
+                g = adjncy[i];
+                if ( excepted && (excepted[g] != -2) ) continue;
+                if ( _level[g] != -2) continue;
+
+                _level[g] = cur_level;
+                queue_push(&queue2, g);
+                level[ ind_ptr[cur_level] + cur_level_num ] = g;
+                cur_level_num++;
+            }
+        }
+        queue  = queue2;
+        queue2 = NULL;
+    }
+
+    for (i = cur_level + 1; i <= size; ++i) ind_ptr[i] = -1;
+    for (i = ind_ptr[cur_level]; i < size; ++i) level[i] = -2;
+    *level_number = cur_level;
+
+    if (_level) free(_level);
+    return ERROR_NO_ERROR;
+}
+
+int find_periphery_in_subgraph(TWGraph *gr, int *per, int *excepted)
+{
+    int i;
+    int level;
+    int max_level, max_vertex, min_neighbour;
+    int glob_max_level, glob_max_vertex;
+    int viewed;
+    int xadj_start, xadj_end; 
+    int *vertex_level = (int*)malloc(sizeof(int)*(gr->size));
+
+    if ( NULL == vertex_level ) {
+        fprintf(stderr, "error [find_periphery_in_subgraph]: memory allocation error\n");
+        return ERROR_MEMORY_ALLOCATION;
+    }
+
+    int g, s;
+    int *xadj, *adjncy;
+    xadj   = gr->xadj;
+    adjncy = gr->adjncy;
+
+    TQueue queue;
+    queue_init(&queue);
+
+    max_level  = 1;
+    max_vertex = *per;
+
+    do {
+        memset(vertex_level, 0, sizeof(int)*(gr->size));
+//      for (i = 0; i < gr->size; i++) vertex_level[i] = 0;
+
+        glob_max_level  = max_level;
+        glob_max_vertex = max_vertex;
+
+        // Set level for first vertex equals 1
+        queue_push(&queue, glob_max_vertex);
+        vertex_level[glob_max_vertex] = 1;
+
+        // Set maxmin variables
+        max_level     = 1;
+        max_vertex    = glob_max_vertex;
+        min_neighbour = gr->size;
+        viewed = 1;
+
+        while (queue_pop(&queue, &g)) {
+            level = vertex_level[g];                // parent level
+
+            xadj_start = xadj[g];
+            xadj_end   = xadj[g+1];
+
+            for (i = xadj_start; i < xadj_end; i++) {
+                s = adjncy[i];
+                if (excepted && (excepted[s] != -2)) continue;
+                if (!vertex_level[s]) {
+                    viewed++;                       // one more vertex is viewed now
+                    vertex_level[s] = level + 1;    // increasing level
+                    queue_push(&queue, s);          // will 
+                }
+            }
+
+            if (viewed == gr->size) {               // smart thing to decrease number of operations
+                if (level > max_level) {            // search for vertex with max level
+                    max_level     = level;
+                    max_vertex    = g;
+                    min_neighbour = xadj_end - xadj_start;
+                }
+                                                    // but with minimal number of neighbours
+                if ( (level == max_level) && (xadj_end - xadj_start < min_neighbour) ) {
+                    max_vertex = g;
+                    min_neighbour = xadj_end - xadj_start;
+                }
+            }
+        }
+#ifdef _DEBUG_LEVEL_1
+        printf("[debug(1)]{find_periphery_in_subgraph}: current max vertex: %d [level:%d]\n", max_vertex, max_level);
+#endif
+    } while (max_level > glob_max_level);           // repeat until glob_max_level isn't changed
+
+#ifdef _DEBUG_LEVEL_1
+    printf("[debug(1)]{find_periphery_in_subgraph}: glob_max_level: %d, periphery: %d\n", glob_max_level, glob_max_vertex);
+#endif
+
+    free(vertex_level);
+
+    *per = glob_max_vertex;
+    return ERROR_NO_ERROR;
+}
+
+int graph_reorder(TWGraph *gr, int *perm, int *invp)
+{
+    real *wvert, *wedge;
+    int  *adjncy, *xadj;
+    int  i, j, ci, g;
+
+#ifdef _DEBUG_LEVEL_1
+printf("[debug(1)]{graph_reorder}: INPUT graph\n");
+graph_show(gr);
+#endif
+
+    wedge  = (real*)malloc(sizeof(real)*(gr->nonz));
+    adjncy = ( int*)malloc(sizeof( int)*(gr->nonz));
+    xadj   = ( int*)malloc(sizeof( int)*(gr->size+1));
+    wvert  = (real*)malloc(sizeof(real)*(gr->size));
+
+    if ( NULL == wedge || NULL == adjncy || NULL == xadj || NULL == wvert) {
+        if (  wedge ) free( wedge);
+        if ( adjncy ) free(adjncy);
+        if (   xadj ) free(  xadj);
+        if (  wvert ) free( wvert);
+
+        fprintf(stderr, "error [graph_reorder]: memory allocation error\n");
+        return ERROR_MEMORY_ALLOCATION;
+    }
+
+    // let's reorder
+    ci = 0;
+    for (i = 0; i < gr->size; i++) {                    // run over all rows
+        wvert[i] = gr->wvert[perm[i]];                  // copy vertices weight
+        xadj[i] = ci;
+        for (j=gr->xadj[perm[i]]; j<gr->xadj[perm[i]+1]; j++) {     // run over all neighbours
+            g = gr->adjncy[j];
+            adjncy[ci] = invp[g];                       // make edge
+            wedge[ci]  = gr->wedge[j];                  // set  edge weight
+            ci++;
+        }
+    }
+    xadj[i] = ci;                                       // xadj[size] = nonz
+
+#ifdef _DEBUG_LEVEL_1
+printf("[debug(1)]{graph_reorder}: REORDERED graph\n");
+graph_show(gr);
+#endif
+
+    free(gr->wedge);
+    free(gr->adjncy);
+    free(gr->xadj);
+    free(gr->wvert);
+
+    gr->wedge  = wedge;
+    gr->adjncy = adjncy;
+    gr->xadj   = xadj;
+    gr->wvert  = wvert;
+
+    return ERROR_NO_ERROR;
+}
+
 int build_graph(TWGraph *gr, TMatrix_DCSR *matr) 
 {
     int i, j, ci;

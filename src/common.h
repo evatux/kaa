@@ -10,9 +10,9 @@
 #include <math.h>
 
 #ifdef  _DEBUG
-//#define _DEBUG_LEVEL_0
-//#define _DEBUG_LEVEL_1
-//#define _DEBUG_LEVEL_2
+#define _DEBUG_LEVEL_0
+#define _DEBUG_LEVEL_1
+#define _DEBUG_LEVEL_2
 #define _DEBUG_LEVEL_MD
 //#define _DEBUG_LEVEL_CHOLESKY
 //#define _DEBUG_LEVEL_SOLVER
@@ -57,6 +57,7 @@ typedef float real;
 #define ERROR_FILE_IO           17
 #define ERROR_DIV_BY_ZERO       30
 #define ERROR_NEGATIVE_SQRT     31
+#define ERROR_SMTH_WRONG        50
 #define ERROR_GRAPHICS          98
 #define ERROR_UNIMPLEMENTED     99
 
@@ -67,6 +68,7 @@ typedef float real;
             case 17: fprintf(stderr, "error(%d): file input/output error\n",    (x)); break;    \
             case 30: fprintf(stderr, "error(%d): division by zero\n",           (x)); break;    \
             case 31: fprintf(stderr, "error(%d): sqrt from negative number\n",  (x)); break;    \
+            case 50: fprintf(stderr, "error(%d): something goes wrong\n",       (x)); break;    \
             case 98: fprintf(stderr, "error(%d): graphics error\n",             (x)); break;    \
             case 99: fprintf(stderr, "error(%d): unimplemented feature\n",      (x)); break;    \
         }                                                                                       \

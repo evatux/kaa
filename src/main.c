@@ -6,11 +6,13 @@
 #include "core.h"
 #include "rcm.h"
 #include "md.h"
+#include "nd.h"
 #include "cholesky.h"
 #include "solver.h"
 
 #define RCM 1
 #define MD  2
+#define ND  3
 
 #define SAFE( f ) \
     do {                                                \
@@ -46,11 +48,11 @@ void print_usage_and_exit() {
     printf("  %-20s %-10s\t%s\n", "-t|--threshold", "eps", "set what small element is for algorithm");
     printf("  %-20s %-10s\t%s\n", "-g|--graph_threshold", "eps", "set what small element is for png");
     printf("  %-20s %-10s\t%s\n", "-c|--cheps_threshold", "eps", "set what small element is for cholesky");
-    printf("  %-20s %-10s\t%s\n", "-o|--original_rcm", "", "make only original rcm");
-    printf("  %-20s %-10s\t%s\n", "-m|--modified_rcm", "", "make only modified rcm");
+    printf("  %-20s %-10s\t%s\n", "-o|--original_only", "", "make only original algorithm");
+    printf("  %-20s %-10s\t%s\n", "-m|--modified_only", "", "make only modified algorithm");
     printf("  %-20s %-10s\t%s\n", "-r|--reordering_save", "", "save reordering matrix in csr format (matrix-out-pattern should be defined)");
     printf("  %-20s %-10s\t%s\n", "-f|--florida_file", "", "matrix-in-file is represented in florida collection format (.mtx)");
-    printf("  %-20s %-10s\t%s\n", "-a|--algorithm", "[rcm|md]", "set reordering algorithm (rcm by default)");
+    printf("  %-20s %-10s\t%s\n", "-a|--algorithm", "[rcm|md|nd]", "set reordering algorithm (rcm by default)");
 
     exit(2);
 }
@@ -110,11 +112,11 @@ void load_config(int argc, char** argv, config_t *config) {
             sscanf(argv[++cur_opt], "%f", &v);
             config->cheps_threshold = v;
         } else
-        if (!strcmp(argv[cur_opt], "--original_rcm") || !strcmp(argv[cur_opt], "-o"))
+        if (!strcmp(argv[cur_opt], "--original_only") || !strcmp(argv[cur_opt], "-o"))
         {
             config->make_modified = 0;  config->make_original = 1;
         } else
-        if (!strcmp(argv[cur_opt], "--modified_rcm") || !strcmp(argv[cur_opt], "-m"))
+        if (!strcmp(argv[cur_opt], "--modified_only") || !strcmp(argv[cur_opt], "-m"))
         {
             config->make_modified = 1;  config->make_original = 0;
         } else
@@ -137,7 +139,10 @@ void load_config(int argc, char** argv, config_t *config) {
             if (!strcmp(argv[cur_opt], "md"))
                 config->algorithm = MD;
             else
-                print_usage_and_exit(argv[0]);
+            if (!strcmp(argv[cur_opt], "nd"))
+                config->algorithm = ND;
+            else
+                 print_usage_and_exit(argv[0]);
         } else
         {
             print_usage_and_exit(argv[0]);
@@ -171,7 +176,15 @@ int main(int argc, char** argv) {
         strcpy(oalg, "omd");
         strcpy(zalg, "zmd");
         reorderer = md;
-    }
+    } else
+    if (config.algorithm == ND)
+    {
+        strcpy(ALG, "ND");
+        strcpy(alg, "nd");
+        strcpy(oalg, "ond");
+        strcpy(zalg, "znd");
+        reorderer = nd;
+     }
 
     FILE* inf = (config.info_file == NULL)?stdout:fopen(config.info_file, "w");
     if (inf == NULL) inf = stdout;
