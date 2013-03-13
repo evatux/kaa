@@ -64,9 +64,7 @@ static int nd_for_subgraph(TWGraph *gr, int start_vertex, int *perm, int *invp, 
 
     if (root == -1) return ERROR_SMTH_WRONG;
 
-printf("[nd] graph_level starts\n");
     graph_level(gr, root, invp, ind_ptr, level, &n);
-printf("[nd] n = %d\n", n);
     if (n <= 3) {   //  S <-- C
         int cl;
         for (cl = 0; cl < n; cl++)
@@ -79,8 +77,7 @@ printf("[nd] n = %d\n", n);
                 perm[*N] = g;
             }
         }
-    }
-    else            //  S <-- L[n/2+1]
+    } else            //  S <-- L[n/2+1]
     {
         int j = n/2;
         int include_flag;
@@ -103,7 +100,6 @@ printf("[nd] n = %d\n", n);
             }
 
             if (include_flag) {
-                printf("eliminate\n");
                 (*N)-=1;
                 invp[g] = *N;
                 perm[*N] = g;

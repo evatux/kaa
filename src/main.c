@@ -230,7 +230,7 @@ int main(int argc, char** argv) {
             sprintf(output_filename, "%s_%s_%s.sim", config.matr_out_file, oalg, "ide");
             SAFE(   make_ident(&A, &LD, &E, output_filename)     );
 //            SAFE(   matrix_save(&E, output_filename)    );
-            matrix_portrait_pattern(&E, config.portrait_file, oalg, "ide", config.graph_threshold);
+            if ( config.portrait_file != NULL ) matrix_portrait_pattern(&E, config.portrait_file, oalg, "ide", config.graph_threshold);
 
             fprintf(inf, "\tAlmost Id: [minE: ?], [maxE: ?], [cond: ?]\n");
         }
@@ -265,7 +265,7 @@ int main(int argc, char** argv) {
             sprintf(output_filename, "%s_%s_%s.sim", config.matr_out_file, zalg, "ide");
             SAFE(   make_ident(&A, &LD, &E, output_filename)     );
 //            SAFE(   matrix_save(&E, output_filename)    );
-            matrix_portrait_pattern(&E, config.portrait_file, zalg, "ide", config.graph_threshold);
+            if ( config.portrait_file != NULL ) matrix_portrait_pattern(&E, config.portrait_file, zalg, "ide", config.graph_threshold);
 
             fprintf(inf, "\tAlmost Id: [minE: ?], [maxE: ?], [cond: ?]\n");
         }
