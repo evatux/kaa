@@ -67,36 +67,55 @@ static int nd_for_subgraph(TWGraph *gr, int start_vertex, int *perm, int *invp, 
     graph_level(gr, root, invp, ind_ptr, level, &n);
     if (n <= 3) {   //  S <-- C
         int cl;
+            
+        //  first include small elements
         for (cl = 0; cl < n; cl++)
         {
             for (l = ind_ptr[cl]; l < ind_ptr[cl+1]; l++)
             {
                 g = level[l];
+                if (FABS(gr->wvert[g]) >= threshold) continue;
                 (*N)-=1;
                 invp[g] = *N;
                 perm[*N] = g;
             }
         }
-    } else            //  S <-- L[n/2+1]
-    {
+        //  then the others
+        for (cl = 0; cl < n; cl++)
+        {
+            for (l = ind_ptr[cl]; l < ind_ptr[cl+1]; l++)
+            {
+                g = level[l];
+                if (FABS(gr->wvert[g]) < threshold) continue;
+                (*N)-=1;
+                invp[g] = *N;
+                perm[*N] = g;
+            }
+         }
+    } else {          //  S <-- L[n/2+1]
         int j = n/2;
-        int include_flag;
+        int include_flag, include_flag_eps;
+        int g_eps;
         int ii, jj;
 
         for (l = ind_ptr[j]; l < ind_ptr[j+1]; l++) {
             include_flag = 0;
             g = level[l];
 
-            for (ii = gr->xadj[g]; ii < gr->xadj[g+1]; ii++)
-            {
-                for (jj = ind_ptr[j+1]; jj < ind_ptr[j+2]; jj++)
+            if (FABS(gr->wvert[g]) < threshold) {
+                include_flag = 1;
+            } else {
+                for (ii = gr->xadj[g]; ii < gr->xadj[g+1]; ii++)
                 {
-                    if (gr->adjncy[ii] == level[jj]) {
-                        include_flag = 1;
-                        break;
+                    for (jj = ind_ptr[j+1]; jj < ind_ptr[j+2]; jj++)
+                    {
+                        if (gr->adjncy[ii] == level[jj]) {
+                            include_flag = 1;
+                            break;
+                        }
                     }
+                    if (include_flag) break;
                 }
-                if (include_flag) break;
             }
 
             if (include_flag) {

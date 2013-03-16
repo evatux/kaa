@@ -120,7 +120,7 @@ int matrix_save(TMatrix_DCSR *matr, const char *filename)
     fprintf(fp, "\n");
     for (i = 0; i < nonz; i++) fprintf(fp, "%d ", matr->col_ind[i]);    // item's column index
     fprintf(fp, "\n");
-    for (i = 0; i < size; i++) fprintf(fp, "%d ", matr->row_ptr[i]);    // row ptr offset
+    for (i = 0; i <= size; i++) fprintf(fp, "%d ", matr->row_ptr[i]);    // row ptr offset
     fprintf(fp, "\n");
 
     fclose(fp);
