@@ -6,6 +6,7 @@
 #include <malloc.h>
 
 #include "core.h"
+#include "unit.h"
 #include "common.h"
 
 #define EXCEPTION(cond, msg, ind, EXCP) \
@@ -17,16 +18,18 @@
         }                               \
     } while(0)
 
-int cholesky_decomposition(TMatrix_DCSR *A, TMatrix_DCSR *LD, const real cheps, int *neps)
+int cholesky_decomposition(TMatrix_DCSR *A, TMatrix_DCSR *LD, const real threshold, const real substitute, int *neps, int **neps_list)
 {
     int err;
     int i, j, k;
     int size = A->size;
     real sum, cur, ljj;
     real* LS;
+    TQueue queue;
     TMatrix_Simple L_simp;
 
     *neps = 0;  // number of convertations 0 --> cheps
+    queue_init(&queue);
 
 //matrix_show(A, 0);
     err = matrix_convert_dcsr2simp(A, &L_simp);
@@ -47,9 +50,10 @@ printf("%.2e: ", LS[j*size+j]);
         }
 //EXCEPTION(sum < 0, "l[j,j] < 0 ; j = %d\n", j, ERROR_NEGATIVE_SQRT);
 
-        if (FABS(ljj) < cheps) {    // this is modification of cholesky
-            ljj = LS[j*size+j] = cheps*SGN(ljj);
+        if (FABS(ljj) < threshold) {    // this is modification of cholesky
+            ljj = LS[j*size+j] = substitute*SGN(ljj);
             *neps += 1;
+            if (neps_list) queue_push(&queue, j);
         } else LS[j*size+j] = ljj;
 #ifdef _DEBUG_LEVEL_CHOLESKY
 printf(" --> %.2e\n", LS[j*size+j]);
@@ -72,5 +76,18 @@ printf(" --> %.2e\n", LS[j*size+j]);
     }
 
     matrix_simp_destroy(&L_simp);
+
+    if ((*neps) != 0) {
+        *neps_list = (int*)malloc(sizeof(int)*(*neps));
+        if ((*neps_list) == NULL) {
+            fprintf(stderr, "[cholesky] memory allocation error\n");
+            return ERROR_MEMORY_ALLOCATION;
+        }
+        for (i = 0; i < *neps; ++i) {
+            queue_pop(&queue, &j);
+            (*neps_list)[i] = j;
+        }
+    } else *neps_list = NULL;
+
     return ERROR_NO_ERROR;
 }

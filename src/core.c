@@ -201,10 +201,10 @@ int matrix_save_symcompact(TMatrix_Simple *matr, const char *filename)
     return ERROR_NO_ERROR;
 }
 
-int matrix_portrait(TMatrix_DCSR *matr, const char *filename, real threshold)
+int matrix_portrait(TMatrix_DCSR *matr, const char *filename, real threshold, int neps, int* neps_list)
 {
 #ifndef CONFIG_DISABLE_GRAPHICS
-    return make_matrix_portrait_color(matr, filename, threshold);
+    return make_matrix_portrait_with_neps(matr, filename, threshold, neps, neps_list);
 #endif
     return ERROR_UNIMPLEMENTED;
 }
@@ -213,7 +213,14 @@ int matrix_portrait_pattern(TMatrix_DCSR *matr, const char *pattern, const char 
 {
     char str[MAX_FILENAME_LENGTH];
     sprintf(str, "%s_%s_%s.png", pattern, modifier, suffix);
-    return matrix_portrait(matr, str, threshold);
+    return matrix_portrait(matr, str, threshold, 0, NULL);
+}
+
+int matrix_portrait_with_neps_pattern(TMatrix_DCSR *matr, const char *pattern, const char *modifier, const char *suffix, real threshold, int neps, int* neps_list)
+{
+    char str[MAX_FILENAME_LENGTH];
+    sprintf(str, "%s_%s_%s.png", pattern, modifier, suffix);
+    return matrix_portrait(matr, str, threshold, neps, neps_list);
 }
 
 void matrix_simp_show(TMatrix_Simple *matr)

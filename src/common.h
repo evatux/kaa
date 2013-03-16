@@ -18,7 +18,7 @@
 //#define _DEBUG_LEVEL_SOLVER
 #endif
 
-#define _ZRCM_SMART
+//#define _ZRCM_SMART
 
 #define PRINT_ZEROES
 #define MAX_FILENAME_LENGTH 1024

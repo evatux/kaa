@@ -36,6 +36,7 @@ typedef struct {
     real    threshold;
     real    graph_threshold;
     real    cheps_threshold;
+    real    cheps_substitute;
     int     fmc_flag;
     int     algorithm;
 } config_t;
@@ -48,6 +49,7 @@ void print_usage_and_exit() {
     printf("  %-20s %-10s\t%s\n", "-t|--threshold", "eps", "set what small element is for algorithm");
     printf("  %-20s %-10s\t%s\n", "-g|--graph_threshold", "eps", "set what small element is for png");
     printf("  %-20s %-10s\t%s\n", "-c|--cheps_threshold", "eps", "set what small element is for cholesky");
+    printf("  %-20s %-10s\t%s\n", "-h|--cheps_substitute", "eps", "set substitute value for cholesky");
     printf("  %-20s %-10s\t%s\n", "-o|--original_only", "", "make only original algorithm");
     printf("  %-20s %-10s\t%s\n", "-m|--modified_only", "", "make only modified algorithm");
     printf("  %-20s %-10s\t%s\n", "-r|--reordering_save", "", "save reordering matrix in csr format (matrix-out-pattern should be defined)");
@@ -76,6 +78,7 @@ void load_config(int argc, char** argv, config_t *config) {
     config->threshold       = EPS_THRESHOLD;
     config->graph_threshold = EPS_THRESHOLD;
     config->cheps_threshold = CHEPS_THRESHOLD;
+    config->cheps_substitute= CHEPS_THRESHOLD;
     config->make_original   = 1;
     config->make_modified   = 1;
     config->save_reordering = 0;
@@ -111,6 +114,11 @@ void load_config(int argc, char** argv, config_t *config) {
         {
             sscanf(argv[++cur_opt], "%f", &v);
             config->cheps_threshold = v;
+        } else
+        if (!strcmp(argv[cur_opt], "--cheps_substitute") || !strcmp(argv[cur_opt], "-h"))
+        {
+            sscanf(argv[++cur_opt], "%f", &v);
+            config->cheps_substitute = v;
         } else
         if (!strcmp(argv[cur_opt], "--original_only") || !strcmp(argv[cur_opt], "-o"))
         {
@@ -197,7 +205,7 @@ int main(int argc, char** argv) {
 
     if (config.fmc_flag == 0)
         SAFE( matrix_load(&matr_src, config.matr_in_file) ) ;
-    else 
+    else
         SAFE( matrix_load_fmc(&matr_src, config.matr_in_file) ) ;
 
 
@@ -209,6 +217,7 @@ int main(int argc, char** argv) {
 
         TMatrix_DCSR A, LD, E;
         int neps = 0;
+        int *neps_list = NULL;
 
         SAFE(   matrix_copy(&matr_src, &A)  );
         SAFE(   reorderer(&A, 0)            );
@@ -218,19 +227,20 @@ int main(int argc, char** argv) {
             SAFE(   matrix_save(&A, output_filename)    );
         }
 
+        SAFE(   cholesky_decomposition(&A, &LD, config.cheps_threshold, config.cheps_substitute, &neps, &neps_list)  );
+
         fprintf(inf, "\tOutput:      [nonz: %d], [band: %d]\n", A.nonz, matrix_get_band(&A));
-        if ( config.portrait_file != NULL ) matrix_portrait_pattern(&A, config.portrait_file, oalg, "",  config.graph_threshold);
-
-        SAFE(   cholesky_decomposition(&A, &LD, config.cheps_threshold, &neps)  );
-
         fprintf(inf, "\tCholesky output: [nonz: %d], [cheps: %e], [neps: %d]\n", 2*LD.nonz, config.cheps_threshold, neps);
-        if ( config.portrait_file != NULL ) matrix_portrait_pattern(&LD, config.portrait_file, oalg, "chl", config.graph_threshold);
+        if ( config.portrait_file != NULL )
+        {
+            matrix_portrait_with_neps_pattern(&A, config.portrait_file, oalg, "",  config.threshold, neps, neps_list);
+            matrix_portrait_with_neps_pattern(&LD, config.portrait_file, oalg, "chl", config.cheps_threshold, neps, neps_list);
+        }
 
         if (config.matr_out_file) {
             sprintf(output_filename, "%s_%s_%s.sim", config.matr_out_file, oalg, "ide");
             SAFE(   make_ident(&A, &LD, &E, output_filename)     );
-//            SAFE(   matrix_save(&E, output_filename)    );
-            if ( config.portrait_file != NULL ) matrix_portrait_pattern(&E, config.portrait_file, oalg, "ide", config.graph_threshold);
+            if ( config.portrait_file != NULL ) matrix_portrait_with_neps_pattern(&E, config.portrait_file, oalg, "ide", config.cheps_threshold, neps, neps_list);
 
             fprintf(inf, "\tAlmost Id: [minE: ?], [maxE: ?], [cond: ?]\n");
         }
@@ -238,12 +248,14 @@ int main(int argc, char** argv) {
         matrix_destroy(&A);
         matrix_destroy(&LD);
         if (config.matr_out_file) matrix_destroy(&E);
+        if (neps_list) free(neps_list);
     }
     if (config.make_modified) {
         fprintf(inf, "\n=============[ Modified %s ]=============\n", ALG);
 
         TMatrix_DCSR A, LD, E;
         int neps = 0;
+        int* neps_list;
 
         SAFE( matrix_copy(&matr_src, &A)        );
         SAFE( reorderer(&A, config.threshold)   );
@@ -253,19 +265,20 @@ int main(int argc, char** argv) {
             SAFE(   matrix_save(&A, output_filename)    );
         }
 
+        SAFE(   cholesky_decomposition(&A, &LD, config.cheps_threshold, config.cheps_substitute, &neps, &neps_list)  );
+
         fprintf(inf, "\tOutput:      [nonz: %d], [band: %d]\n", A.nonz, matrix_get_band(&A));
-        if ( config.portrait_file != NULL ) matrix_portrait_pattern(&A, config.portrait_file, zalg, "", config.graph_threshold);
-
-        SAFE(   cholesky_decomposition(&A, &LD, config.cheps_threshold, &neps)  );
-
         fprintf(inf, "\tCholesky output: [nonz: %d], [cheps: %e], [neps: %d]\n", 2*LD.nonz, config.cheps_threshold, neps);
-        if ( config.portrait_file != NULL ) matrix_portrait_pattern(&LD, config.portrait_file, zalg, "chl", config.graph_threshold);
+        if ( config.portrait_file != NULL )
+        {
+            matrix_portrait_with_neps_pattern(&A, config.portrait_file, zalg, "", config.threshold, neps, neps_list);
+            matrix_portrait_with_neps_pattern(&LD, config.portrait_file, zalg, "chl", config.cheps_threshold, neps, neps_list);
+        }
 
         if (config.matr_out_file) {
             sprintf(output_filename, "%s_%s_%s.sim", config.matr_out_file, zalg, "ide");
             SAFE(   make_ident(&A, &LD, &E, output_filename)     );
-//            SAFE(   matrix_save(&E, output_filename)    );
-            if ( config.portrait_file != NULL ) matrix_portrait_pattern(&E, config.portrait_file, zalg, "ide", config.graph_threshold);
+            if ( config.portrait_file != NULL ) matrix_portrait_with_neps_pattern(&E, config.portrait_file, zalg, "ide", config.cheps_threshold, neps, neps_list);
 
             fprintf(inf, "\tAlmost Id: [minE: ?], [maxE: ?], [cond: ?]\n");
         }
@@ -273,6 +286,7 @@ int main(int argc, char** argv) {
         matrix_destroy(&A);
         matrix_destroy(&LD);
         if (config.matr_out_file) matrix_destroy(&E);
+        if (neps_list) free(neps_list);
     }
 
     matrix_destroy(&matr_src);

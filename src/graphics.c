@@ -150,7 +150,7 @@ static void put_point(pixel_t *pixel, int color)
 //      external subroutines
 // =============================================
 
-int make_matrix_portrait_color(TMatrix_DCSR *matr, const char *filename, real threshold) 
+int make_matrix_portrait_with_neps(TMatrix_DCSR *matr, const char *filename, real threshold, int neps, int* neps_list)
 {
     bitmap_t portrait;
     pixel_t *pixel;
@@ -169,21 +169,32 @@ int make_matrix_portrait_color(TMatrix_DCSR *matr, const char *filename, real th
         }
     }
 
-    int i, j;
+    int i, j, k;
+    int color;
     int ci = 0;
 
     for (i = 0; i < matr->size; i++) {
         for (j = 0; j < matr->size; j++) {
-            if ( i == j ) put_point(matrix_pixel_at(&portrait, i, j, matr->size), (FABS(matr->diag[i]) < threshold)?CL_RED:CL_BLACK);
-            else {
-                for (ci = matr->row_ptr[i]; ci < matr->row_ptr[i+1]; ci++)
-                    if ( matr->col_ind[ci] == j ) {
-//                      put_point(matrix_pixel_at(&portrait, i, j, matr->size), CL_BLACK);
-                        if (FABS(matr->val[ci]) > GRAPH_ZERO_THRESHOLD)
-                            put_point(matrix_pixel_at(&portrait, i, j, matr->size), CL_BLACK);
-//                      printf("%4.1f ", matr->val[ci]);
+            if ( i == j ) {
+                color = CL_BLACK;
+                if (FABS(matr->diag[i]) < threshold) color = CL_GREEN;
+                for (k = 0; k < neps; k++) {
+                    if (i == neps_list[k]) {
+                        color = CL_RED;
                         break;
                     }
+                }
+                put_point(matrix_pixel_at(&portrait, i, j, matr->size), color);
+            } else
+            {
+                for (ci = matr->row_ptr[i]; ci < matr->row_ptr[i+1]; ci++)
+                {
+                    if ( matr->col_ind[ci] == j ) {
+                        if (FABS(matr->val[ci]) > GRAPH_ZERO_THRESHOLD)
+                            put_point(matrix_pixel_at(&portrait, i, j, matr->size), CL_BLACK);
+                        break;
+                    }
+                }
             }
         }
     }
@@ -193,7 +204,12 @@ int make_matrix_portrait_color(TMatrix_DCSR *matr, const char *filename, real th
     return ERROR_NO_ERROR;
 }
 
+int make_matrix_portrait_color(TMatrix_DCSR *matr, const char *filename, real threshold)
+{
+    return make_matrix_portrait_with_neps(matr, filename, threshold, 0, NULL);
+}
+
 int make_matrix_portrait(TMatrix_DCSR *matr, const char *filename)
 {
-    return make_matrix_portrait_color(matr, filename, 0.);
+    return make_matrix_portrait_with_neps(matr, filename, 0., 0, NULL);
 }
