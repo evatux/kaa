@@ -209,6 +209,14 @@ int matrix_portrait(TMatrix_DCSR *matr, const char *filename, real threshold, in
     return ERROR_UNIMPLEMENTED;
 }
 
+int matrix_portrait_unite(TMatrix_DCSR *A, TMatrix_DCSR *LD, const char *filename, real threshold, int neps, int *neps_list)
+{
+#ifndef CONFIG_DISABLE_GRAPHICS
+    return make_matrix_unite_portrait(A, LD, filename, threshold, neps, neps_list);
+#endif
+    return ERROR_UNIMPLEMENTED;
+}
+
 int matrix_portrait_pattern(TMatrix_DCSR *matr, const char *pattern, const char *modifier, const char *suffix, real threshold)
 {
     char str[MAX_FILENAME_LENGTH];
@@ -221,6 +229,13 @@ int matrix_portrait_with_neps_pattern(TMatrix_DCSR *matr, const char *pattern, c
     char str[MAX_FILENAME_LENGTH];
     sprintf(str, "%s_%s_%s.png", pattern, modifier, suffix);
     return matrix_portrait(matr, str, threshold, neps, neps_list);
+}
+
+int matrix_portrait_unite_pattern(TMatrix_DCSR *A, TMatrix_DCSR *LD, const char *pattern, const char *suffix, real threshold, int neps, int *neps_list)
+{
+    char str[MAX_FILENAME_LENGTH];
+    sprintf(str, "%s_%s.png", pattern, suffix);
+    return matrix_portrait_unite(A, LD, str, threshold, neps, neps_list);
 }
 
 void matrix_simp_show(TMatrix_Simple *matr)

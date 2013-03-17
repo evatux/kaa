@@ -29,4 +29,6 @@ int make_matrix_portrait(TMatrix_DCSR* /*matr*/, const char* /*filename*/);
 int make_matrix_portrait_color(TMatrix_DCSR* /*matr*/, const char* /*filename*/, real /*threshold*/);
 int make_matrix_portrait_with_neps(TMatrix_DCSR* /*matr*/, const char* /*filename*/, real threshold, int /*neps*/, int* /*neps_list*/);
 
+int make_matrix_unite_portrait(TMatrix_DCSR* /*A*/, TMatrix_DCSR* /*LD*/, const char* /*filename*/, real threshold, int /*neps*/, int* /*neps_list*/);
+
 #endif

@@ -139,11 +139,11 @@ static int pix(int value, int max)
     return (int) (256.0 *((double) (value)/(double) max));
 }
 
-static void put_point(pixel_t *pixel, int color) 
+static void put_point(pixel_t *pixel, int color, double hue)
 {
-    pixel->red   = 255 * (CL_RED   & color);
-    pixel->green = 255 * (CL_GREEN & color);
-    pixel->blue  = 255 * (CL_BLUE  & color);
+    pixel->red   = ((int)(255. * hue)) * (CL_RED   & color);
+    pixel->green = ((int)(255. * hue)) * (CL_GREEN & color);
+    pixel->blue  = ((int)(255. * hue)) * (CL_BLUE  & color);
 }
 
 // =============================================
@@ -165,7 +165,7 @@ int make_matrix_portrait_with_neps(TMatrix_DCSR *matr, const char *filename, rea
 
     for (y = 0; y < portrait.height; y++) {
         for (x = 0; x < portrait.width; x++) {
-            put_point(pixel_at(&portrait, x, y), CL_WHITE);
+            put_point(pixel_at(&portrait, x, y), CL_WHITE, 1);
         }
     }
 
@@ -184,14 +184,14 @@ int make_matrix_portrait_with_neps(TMatrix_DCSR *matr, const char *filename, rea
                         break;
                     }
                 }
-                put_point(matrix_pixel_at(&portrait, i, j, matr->size), color);
+                put_point(matrix_pixel_at(&portrait, i, j, matr->size), color, 1);
             } else
             {
                 for (ci = matr->row_ptr[i]; ci < matr->row_ptr[i+1]; ci++)
                 {
                     if ( matr->col_ind[ci] == j ) {
                         if (FABS(matr->val[ci]) > GRAPH_ZERO_THRESHOLD)
-                            put_point(matrix_pixel_at(&portrait, i, j, matr->size), CL_BLACK);
+                            put_point(matrix_pixel_at(&portrait, i, j, matr->size), CL_BLACK, 1);
                         break;
                     }
                 }
@@ -213,3 +213,66 @@ int make_matrix_portrait(TMatrix_DCSR *matr, const char *filename)
 {
     return make_matrix_portrait_with_neps(matr, filename, 0., 0, NULL);
 }
+
+int make_matrix_unite_portrait(TMatrix_DCSR *A, TMatrix_DCSR *LD, const char *filename, real threshold, int neps, int *neps_list)
+{
+    bitmap_t portrait;
+    pixel_t *pixel;
+    int x, y;
+    int size;
+
+    size = (A->size > MAX_PNG_SIZE) ? MAX_PNG_SIZE : A->size;
+    portrait.width  = size;
+    portrait.height = size;
+
+    portrait.pixels = (pixel_t*) malloc(sizeof(pixel_t) * portrait.width * portrait.height);
+
+    for (y = 0; y < portrait.height; y++) {
+        for (x = 0; x < portrait.width; x++) {
+            put_point(pixel_at(&portrait, x, y), CL_WHITE, 1);
+        }
+    }
+
+    int i, j, k;
+    int color;
+    int ci = 0;
+
+    for (i = 0; i < A->size; i++) {
+        for (j = 0; j < A->size; j++) {
+            if ( i == j ) {
+                color = CL_BLACK;
+                if (FABS(A->diag[i]) < threshold) color = CL_GREEN;
+                for (k = 0; k < neps; k++) {
+                    if (i == neps_list[k]) {
+                        color = CL_RED;
+                        break;
+                    }
+                }
+                put_point(matrix_pixel_at(&portrait, i, j, A->size), color, 1);
+            } else
+            {
+                for (ci = LD->row_ptr[i]; ci < LD->row_ptr[i+1]; ci++)
+                {
+                    if ( LD->col_ind[ci] == j ) {
+                        if (FABS(LD->val[ci]) > GRAPH_ZERO_THRESHOLD)
+                            put_point(matrix_pixel_at(&portrait, i, j, A->size), CL_WHITE, 0.5);
+                        break;
+                    }
+                }
+                for (ci = A->row_ptr[i]; ci < A->row_ptr[i+1]; ci++)
+                {
+                    if ( A->col_ind[ci] == j ) {
+                        if (FABS(A->val[ci]) > GRAPH_ZERO_THRESHOLD)
+                            put_point(matrix_pixel_at(&portrait, i, j, A->size), CL_BLACK, 1.);
+                        break;
+                    }
+                }
+             }
+        }
+    }
+
+    if (save_png_to_file (&portrait, filename) != 0) return ERROR_GRAPHICS;
+
+    return ERROR_NO_ERROR;
+}
+

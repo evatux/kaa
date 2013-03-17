@@ -39,6 +39,7 @@ typedef struct {
     real    cheps_substitute;
     int     fmc_flag;
     int     algorithm;
+    int     separate_png;
 } config_t;
 
 void print_usage_and_exit() {
@@ -55,6 +56,7 @@ void print_usage_and_exit() {
     printf("  %-20s %-10s\t%s\n", "-r|--reordering_save", "", "save reordering matrix in csr format (matrix-out-pattern should be defined)");
     printf("  %-20s %-10s\t%s\n", "-f|--florida_file", "", "matrix-in-file is represented in florida collection format (.mtx)");
     printf("  %-20s %-10s\t%s\n", "-a|--algorithm", "[rcm|md|nd]", "set reordering algorithm (rcm by default)");
+    printf("  %-20s %-10s\t%s\n", "-n|--separate_png", "", "make reordering and cholesky pictures separately");
 
     exit(2);
 }
@@ -84,6 +86,7 @@ void load_config(int argc, char** argv, config_t *config) {
     config->save_reordering = 0;
     config->fmc_flag        = 0;
     config->algorithm       = RCM;
+    config->separate_png    = 0;
 
     if ( argc >= 3 && argv[2][0] != '-' )
     {
@@ -136,6 +139,10 @@ void load_config(int argc, char** argv, config_t *config) {
         if (!strcmp(argv[cur_opt], "--florida_file") || !strcmp(argv[cur_opt], "-f"))
         {
             config->fmc_flag = 1;
+        } else
+        if (!strcmp(argv[cur_opt], "--separate_png") || !strcmp(argv[cur_opt], "-n"))
+        {
+            config->separate_png = 1;
         } else
         if (!strcmp(argv[cur_opt], "--algorithm") || !strcmp(argv[cur_opt], "-a"))
         {
@@ -231,10 +238,13 @@ int main(int argc, char** argv) {
 
         fprintf(inf, "\tOutput:      [nonz: %d], [band: %d]\n", A.nonz, matrix_get_band(&A));
         fprintf(inf, "\tCholesky output: [nonz: %d], [cheps: %e], [neps: %d]\n", 2*LD.nonz, config.cheps_threshold, neps);
-        if ( config.portrait_file != NULL )
-        {
-            matrix_portrait_with_neps_pattern(&A, config.portrait_file, oalg, "",  config.threshold, neps, neps_list);
-            matrix_portrait_with_neps_pattern(&LD, config.portrait_file, oalg, "chl", config.cheps_threshold, neps, neps_list);
+        if ( config.portrait_file != NULL ) {
+            if (config.separate_png) {
+                matrix_portrait_with_neps_pattern(&A, config.portrait_file, oalg, "",  config.threshold, neps, neps_list);
+                matrix_portrait_with_neps_pattern(&LD, config.portrait_file, oalg, "chl", config.cheps_threshold, neps, neps_list);
+            } else {
+                matrix_portrait_unite_pattern(&A, &LD, config.portrait_file, oalg, config.threshold, neps, neps_list);
+            }
         }
 
         if (config.matr_out_file) {
@@ -271,8 +281,12 @@ int main(int argc, char** argv) {
         fprintf(inf, "\tCholesky output: [nonz: %d], [cheps: %e], [neps: %d]\n", 2*LD.nonz, config.cheps_threshold, neps);
         if ( config.portrait_file != NULL )
         {
-            matrix_portrait_with_neps_pattern(&A, config.portrait_file, zalg, "", config.threshold, neps, neps_list);
-            matrix_portrait_with_neps_pattern(&LD, config.portrait_file, zalg, "chl", config.cheps_threshold, neps, neps_list);
+            if (config.separate_png) {
+                matrix_portrait_with_neps_pattern(&A, config.portrait_file, zalg, "", config.threshold, neps, neps_list);
+                matrix_portrait_with_neps_pattern(&LD, config.portrait_file, zalg, "chl", config.cheps_threshold, neps, neps_list);
+            } else {
+                matrix_portrait_unite_pattern(&A, &LD, config.portrait_file, zalg, config.threshold, neps, neps_list);
+            }
         }
 
         if (config.matr_out_file) {
