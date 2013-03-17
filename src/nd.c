@@ -93,7 +93,7 @@ static int nd_for_subgraph(TWGraph *gr, int start_vertex, int *perm, int *invp, 
             }
          }
     } else {          //  S <-- L[n/2+1]
-        int j = n/2;
+        int j = n/2 - ((n&1)?0:1);
         int include_flag, include_flag_eps;
         int g_eps;
         int ii, jj;
@@ -116,6 +116,21 @@ static int nd_for_subgraph(TWGraph *gr, int start_vertex, int *perm, int *invp, 
                     }
                     if (include_flag) break;
                 }
+            }
+
+            if (include_flag) {
+                (*N)-=1;
+                invp[g] = *N;
+                perm[*N] = g;
+            }
+        }
+
+        for (l = ind_ptr[j+1]; l < ind_ptr[j+2]; l++) {
+            include_flag = 0;
+            g = level[l];
+
+            if (FABS(gr->wvert[g]) < threshold) {
+                include_flag = 1;
             }
 
             if (include_flag) {

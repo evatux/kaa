@@ -173,30 +173,30 @@ int make_matrix_portrait_with_neps(TMatrix_DCSR *matr, const char *filename, rea
     int color;
     int ci = 0;
 
-    for (i = 0; i < matr->size; i++) {
-        for (j = 0; j < matr->size; j++) {
-            if ( i == j ) {
-                color = CL_BLACK;
-                if (FABS(matr->diag[i]) < threshold) color = CL_GREEN;
-                for (k = 0; k < neps; k++) {
-                    if (i == neps_list[k]) {
-                        color = CL_RED;
-                        break;
-                    }
-                }
-                put_point(matrix_pixel_at(&portrait, i, j, matr->size), color, 1);
-            } else
-            {
-                for (ci = matr->row_ptr[i]; ci < matr->row_ptr[i+1]; ci++)
-                {
-                    if ( matr->col_ind[ci] == j ) {
-                        if (FABS(matr->val[ci]) > GRAPH_ZERO_THRESHOLD)
-                            put_point(matrix_pixel_at(&portrait, i, j, matr->size), CL_BLACK, 1);
-                        break;
-                    }
-                }
+    // first draw non-diagonal matrix elements
+    for (i = 0; i < matr->size; ++i)
+    {
+        for (ci = matr->row_ptr[i]; ci < matr->row_ptr[i+1]; ci++)
+        {
+            if (FABS(matr->val[ci]) > GRAPH_ZERO_THRESHOLD)
+                put_point(matrix_pixel_at(&portrait, i, matr->col_ind[ci], matr->size), CL_BLACK, 1.);
+        }
+    }
+
+    // the last one is to draw diagonal elements
+    for (i = 0; i < matr->size; ++i) {
+        color = CL_BLACK;
+        if (FABS(matr->diag[i]) < threshold) color = CL_GREEN;
+        for (k = 0; k < neps; k++) {
+            if (i == neps_list[k]) {
+                color = CL_RED;
+                break;
             }
         }
+        put_point(matrix_pixel_at(&portrait, i, i, matr->size), color, 1);
+    }
+    for (k = 0; k < neps; ++k) {
+       put_point(matrix_pixel_at(&portrait, neps_list[k], neps_list[k], matr->size), CL_RED, 1);
     }
 
     if (save_png_to_file (&portrait, filename) != 0) return ERROR_GRAPHICS;
@@ -237,38 +237,40 @@ int make_matrix_unite_portrait(TMatrix_DCSR *A, TMatrix_DCSR *LD, const char *fi
     int color;
     int ci = 0;
 
-    for (i = 0; i < A->size; i++) {
-        for (j = 0; j < A->size; j++) {
-            if ( i == j ) {
-                color = CL_BLACK;
-                if (FABS(A->diag[i]) < threshold) color = CL_GREEN;
-                for (k = 0; k < neps; k++) {
-                    if (i == neps_list[k]) {
-                        color = CL_RED;
-                        break;
-                    }
-                }
-                put_point(matrix_pixel_at(&portrait, i, j, A->size), color, 1);
-            } else
-            {
-                for (ci = LD->row_ptr[i]; ci < LD->row_ptr[i+1]; ci++)
-                {
-                    if ( LD->col_ind[ci] == j ) {
-                        if (FABS(LD->val[ci]) > GRAPH_ZERO_THRESHOLD)
-                            put_point(matrix_pixel_at(&portrait, i, j, A->size), CL_WHITE, 0.5);
-                        break;
-                    }
-                }
-                for (ci = A->row_ptr[i]; ci < A->row_ptr[i+1]; ci++)
-                {
-                    if ( A->col_ind[ci] == j ) {
-                        if (FABS(A->val[ci]) > GRAPH_ZERO_THRESHOLD)
-                            put_point(matrix_pixel_at(&portrait, i, j, A->size), CL_BLACK, 1.);
-                        break;
-                    }
-                }
-             }
+    // first draw non-diagonal elements from cholesky
+    for (i = 0; i < LD->size; ++i)
+    {
+        for (ci = LD->row_ptr[i]; ci < LD->row_ptr[i+1]; ci++)
+        {
+            if (FABS(LD->val[ci]) > GRAPH_ZERO_THRESHOLD)
+                put_point(matrix_pixel_at(&portrait, i, LD->col_ind[ci], LD->size), CL_WHITE, 0.5);
         }
+    }
+
+    // then draw non-diagonal elements from A
+    for (i = 0; i < A->size; ++i)
+    {
+        for (ci = A->row_ptr[i]; ci < A->row_ptr[i+1]; ci++)
+        {
+            if (FABS(A->val[ci]) > GRAPH_ZERO_THRESHOLD)
+                put_point(matrix_pixel_at(&portrait, i, A->col_ind[ci], A->size), CL_BLACK, 1.);
+        }
+    }
+
+    // and the last one is to draw diagonal elements
+    for (i = 0; i < A->size; ++i) {
+        color = CL_BLACK;
+        if (FABS(A->diag[i]) < threshold) color = CL_GREEN;
+        for (k = 0; k < neps; k++) {
+            if (i == neps_list[k]) {
+                color = CL_RED;
+                break;
+            }
+        }
+        put_point(matrix_pixel_at(&portrait, i, i, A->size), color, 1);
+    }
+    for (k = 0; k < neps; ++k) {
+       put_point(matrix_pixel_at(&portrait, neps_list[k], neps_list[k], A->size), CL_RED, 1);
     }
 
     if (save_png_to_file (&portrait, filename) != 0) return ERROR_GRAPHICS;
