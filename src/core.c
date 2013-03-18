@@ -143,11 +143,11 @@ int matrix_save_symcompact(TMatrix_Simple *matr, const char *filename)
         fclose(fp);
         return ERROR_MEMORY_ALLOCATION;
     }
-
+/*
     for (i = 0; i < size; i++)
         for (j = i+1; j < size; j++)
             matr->val[i*size+j] = matr->val[j*size+i] = (matr->val[i*size+j] + matr->val[j*size+i])/2.;
-
+*/
     // make small analysis: save only not-only-diagonal part of matrix
     // plus save min diagonal and max diagonal elements
     for (i = 0; i < size; i++) {
