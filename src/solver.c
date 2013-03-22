@@ -4,6 +4,10 @@
 #include <stdio.h>
 #include <math.h>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #include "common.h"
 #include "core.h"
 
@@ -87,13 +91,11 @@ int solver(TMatrix_DCSR *LD, real *Y)
     {
         if ( FABS(LD->diag[i]) < INV_EPS ) dbz = 1;
         else Y[i] /= LD->diag[i];
+    }
 
-        if (dbz == 1) {
-#ifdef _DEBUG_LEVEL_SOLVER
-            printf("[debug] {solver}: division by zero found\n");
-#endif
-            return ERROR_DIV_BY_ZERO;
-        }
+    if (dbz == 1) {
+        printf("[debug] {solver}: division by zero found\n");
+        return ERROR_DIV_BY_ZERO;
     }
 
     // Y <- (L^-T)Y

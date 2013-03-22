@@ -206,7 +206,8 @@ int main(int argc, char** argv) {
     fprintf(inf, "Reordering\nSource file: %s\n", config.matr_in_file);
     fprintf(inf, "Algorithm: %s\n", ALG);
     fprintf(inf, "Threshold: %.2e\nGraph threshold: %.2e\n", config.threshold, config.graph_threshold);
-    fprintf(inf, "Cholesky threshold: %.2e\n\n", config.cheps_threshold);
+    fprintf(inf, "Cholesky threshold: %.2e\n", config.cheps_threshold);
+    fprintf(inf, "Cholesky substitute: %.2e\n\n", config.cheps_substitute);
 
     TMatrix_DCSR matr_src;
 

@@ -12,3 +12,13 @@ sz=3
     --png ../output3/${alg}/nstokes_${sz}_1            \
     --algorithm ${alg}
 
+./rcm.out \
+    ../input2/nstokes/nstokes_${size}_2.csr \
+    ../output3/${alg}/nstokes_${size}_2     \
+    --threshold 0.1          \
+    --cheps_threshold 1e-6          \
+    --cheps_substitute 1e-6          \
+    --info_file ../output3/${alg}/nstokes_${size}_2.log  \
+    --png ../output3/${alg}/nstokes_${size}_2            \
+    --algorithm ${alg} &
+
