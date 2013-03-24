@@ -224,7 +224,7 @@ int main(int argc, char** argv) {
         fprintf(inf, "\n=============[ Original %s ]=============\n", ALG);
 
         TMatrix_DCSR A, LD, E;
-        int neps = 0;
+        int neps = 0, pre_neps = 0;
         int *neps_list = NULL;
 
         SAFE(   matrix_copy(&matr_src, &A)  );
@@ -235,9 +235,11 @@ int main(int argc, char** argv) {
             SAFE(   matrix_save(&A, output_filename)    );
         }
 
+        cholesky_preanalysis(&A, config.cheps_threshold, &pre_neps);
         SAFE(   cholesky_decomposition(&A, &LD, config.cheps_threshold, config.cheps_substitute, &neps, &neps_list)  );
 
-        fprintf(inf, "\tOutput:      [nonz: %d], [band: %d]\n", A.nonz, matrix_get_band(&A));
+        fprintf(inf, "\tOutput:          [nonz: %d], [band: %d]\n", A.nonz, matrix_get_band(&A));
+        fprintf(inf, "\tPre analysis:    [pre_neps: %d]\n", pre_neps);
         fprintf(inf, "\tCholesky output: [nonz: %d], [cheps: %e], [neps: %d]\n", 2*LD.nonz, config.cheps_threshold, neps);
         if ( config.portrait_file != NULL ) {
             if (config.separate_png) {
@@ -265,7 +267,7 @@ int main(int argc, char** argv) {
         fprintf(inf, "\n=============[ Modified %s ]=============\n", ALG);
 
         TMatrix_DCSR A, LD, E;
-        int neps = 0;
+        int neps = 0, pre_neps = 0;
         int* neps_list;
 
         SAFE( matrix_copy(&matr_src, &A)        );
@@ -276,9 +278,11 @@ int main(int argc, char** argv) {
             SAFE(   matrix_save(&A, output_filename)    );
         }
 
+        cholesky_preanalysis(&A, config.cheps_threshold, &pre_neps);
         SAFE(   cholesky_decomposition(&A, &LD, config.cheps_threshold, config.cheps_substitute, &neps, &neps_list)  );
 
         fprintf(inf, "\tOutput:      [nonz: %d], [band: %d]\n", A.nonz, matrix_get_band(&A));
+        fprintf(inf, "\tPre analysis:    [pre_neps: %d]\n", pre_neps);
         fprintf(inf, "\tCholesky output: [nonz: %d], [cheps: %e], [neps: %d]\n", 2*LD.nonz, config.cheps_threshold, neps);
         if ( config.portrait_file != NULL )
         {

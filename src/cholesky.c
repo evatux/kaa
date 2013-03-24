@@ -18,6 +18,28 @@
         }                               \
     } while(0)
 
+void cholesky_preanalysis(TMatrix_DCSR *A, real threshold, int *pre_neps)
+{
+    int res = 0;
+    int ci, i, flag;
+    for (i = 0; i < A->size; ++i) {
+        if (FABS(A->diag[i]) < threshold) {
+            flag = 1;
+            for (ci = A->row_ptr[i]; ci < A->row_ptr[i+1]; ci++)
+                if ((A->col_ind[ci] < i) && (A->val[ci] != 0.))
+                {
+                    flag = 0; 
+                    break;
+                }
+            if (flag)
+            {
+                res++;
+            }
+        }
+    }
+    *pre_neps = res;
+}
+
 int cholesky_decomposition(TMatrix_DCSR *A, TMatrix_DCSR *LD, const real threshold, const real substitute, int *neps, int **neps_list)
 {
     int err;

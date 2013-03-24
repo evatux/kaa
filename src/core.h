@@ -72,7 +72,8 @@ int  matrix_get_band(TMatrix_DCSR* /*matr*/);
 
 int  graph_level    (TWGraph* /*gr*/, int /*vertex*/, int* /*excepted*/, int* /*ind_ptr*/, int* /*level*/, int* /*level_number*/);
 int  find_periphery_in_subgraph(TWGraph* /*gr*/, int* /*per*/, int* /*excepted*/);
-int  graph_reorder  (TWGraph* /*gr*/, int*  /* perm*/, int*  /*invp*/);
+int  graph_reorder  (TWGraph* /*gr*/, int*  /*perm*/, int*  /*invp*/);
+int  graph_last_reorder_stage(TWGraph* /*gr*/, real /*threshold*/);
 
 //  Matrix <--> Graph interface
 int  build_graph (TWGraph* /*gr*/, TMatrix_DCSR* /*matr*/);
