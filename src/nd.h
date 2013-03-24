@@ -13,6 +13,10 @@
 // define epsilon (small value)
 #define ND_EPS_THRESHOLD           1
 
+#if (ND_SMART_TYPE != 1 && ND_SMART_TYPE != 2)
+#define ND_SMART_TYPE 2
+#endif
+
 //  Nested Dissection
 int  nd     (TMatrix_DCSR* /*matr*/, real /*threshold*/);
 int  nd_mod (TMatrix_DCSR* /*matr*/);

@@ -2,7 +2,7 @@
 #define _CHOLESKY_H_
 
 /***************************************************
-* File: colesky.h
+* File: cholesky.h
 * Realization Cholesky decomposition
 *
 * NOTE: requires sizeof(real)*N**2 memory

@@ -563,13 +563,6 @@ graph_show(gr);
     return ERROR_NO_ERROR;
 }
 
-int graph_last_reorder_stage(TWGraph *gr, real threshold)
-{
-    if (threshold <= 0.) return ERROR_NO_ERROR;
-
-
-}
-
 int build_graph(TWGraph *gr, TMatrix_DCSR *matr) 
 {
     int i, j, ci;

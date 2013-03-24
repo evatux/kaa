@@ -6,6 +6,7 @@
 #include <malloc.h>
 #include <string.h>
 #include "unit.h"
+#include "runit.h"
 
 #define ERROR_MESSAGE(c,e) do { printf("%s (err_code: %d)\n", c, e); return e; } while(0)
 
@@ -91,54 +92,90 @@ static int nd_for_subgraph(TWGraph *gr, int start_vertex, int *perm, int *invp, 
                 invp[g] = *N;
                 perm[*N] = g;
             }
-         }
+        }
     } else {          //  S <-- L[n/2+1]
-        int j = n/2 - ((n&1)?0:1);
+        int j;
         int include_flag, include_flag_eps;
         int g_eps;
         int ii, jj;
 
-        for (l = ind_ptr[j]; l < ind_ptr[j+1]; l++) {
-            include_flag = 0;
-            g = level[l];
+#if (ND_SMART_TYPE == 1)
+        {
+            j = n/2;
 
-            if (FABS(gr->wvert[g]) < threshold) {
-                include_flag = 1;
-            } else {
-                for (ii = gr->xadj[g]; ii < gr->xadj[g+1]; ii++)
-                {
-                    for (jj = ind_ptr[j+1]; jj < ind_ptr[j+2]; jj++)
+            for (l = ind_ptr[j]; l < ind_ptr[j+1]; l++) {
+                include_flag = 0;
+                g = level[l];
+
+                if (FABS(gr->wvert[g]) < threshold) {
+                    include_flag = 1;
+                } else {
+                    for (ii = gr->xadj[g]; ii < gr->xadj[g+1]; ii++)
                     {
-                        if (gr->adjncy[ii] == level[jj]) {
-                            include_flag = 1;
-                            break;
+                        for (jj = ind_ptr[j+1]; jj < ind_ptr[j+2]; jj++)
+                        {
+                            if (gr->adjncy[ii] == level[jj]) {
+                                include_flag = 1;
+                                break;
+                            }
                         }
+                        if (include_flag) break;
                     }
-                    if (include_flag) break;
+                }
+
+                if (include_flag) {
+                    (*N)-=1;
+                    invp[g] = *N;
+                    perm[*N] = g;
+                }
+            }
+        }
+#elif (ND_SMART_TYPE == 2)        
+        {
+            j = n/2 - ((n&1)?0:1); 
+            for (l = ind_ptr[j]; l < ind_ptr[j+1]; l++) {
+                include_flag = 0;
+                g = level[l];
+
+                if (FABS(gr->wvert[g]) < threshold) {
+                    include_flag = 1;
+                } else {
+                    for (ii = gr->xadj[g]; ii < gr->xadj[g+1]; ii++)
+                    {
+                        for (jj = ind_ptr[j+1]; jj < ind_ptr[j+2]; jj++)
+                        {
+                            if (gr->adjncy[ii] == level[jj]) {
+                                include_flag = 1;
+                                break;
+                            }
+                        }
+                        if (include_flag) break;
+                    }
+                }
+
+                if (include_flag) {
+                    (*N)-=1;
+                    invp[g] = *N;
+                    perm[*N] = g;
                 }
             }
 
-            if (include_flag) {
-                (*N)-=1;
-                invp[g] = *N;
-                perm[*N] = g;
+            for (l = ind_ptr[j+1]; l < ind_ptr[j+2]; l++) {
+                include_flag = 0;
+                g = level[l];
+
+                if (FABS(gr->wvert[g]) < threshold) {
+                    include_flag = 1;
+                }
+
+                if (include_flag) {
+                    (*N)-=1;
+                    invp[g] = *N;
+                    perm[*N] = g;
+                }
             }
         }
-
-        for (l = ind_ptr[j+1]; l < ind_ptr[j+2]; l++) {
-            include_flag = 0;
-            g = level[l];
-
-            if (FABS(gr->wvert[g]) < threshold) {
-                include_flag = 1;
-            }
-
-            if (include_flag) {
-                (*N)-=1;
-                invp[g] = *N;
-                perm[*N] = g;
-            }
-        }
+#endif
 
         int g1 = level[0];
         int g2 = level[ind_ptr[n] - 1];
@@ -262,6 +299,9 @@ printf("[debug(0)]{nd}: graph_reoder\n");
 
     if (perm) free(perm);
     if (invp) free(invp);
+
+    err = graph_last_stage_reorder(&gr, threshold);
+    if ( err != ERROR_NO_ERROR ) ERROR_MESSAGE("nd: graph_last_stage_reorder failed", err);
 
 #ifdef _DEBUG_LEVEL_0
 printf("[debug(0)]{nd}: matrix_builder\n");
