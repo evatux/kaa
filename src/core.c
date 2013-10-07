@@ -88,6 +88,8 @@ int matrix_load_fmc(TMatrix_DCSR *matr, const char* filename)
         return ERROR_MEMORY_ALLOCATION;
     }
 
+    for (i = 0; i < size*size; ++i) A.val[i] = 0.;
+
     for (it = 0; it < nonz; ++it) {
         fscanf(fp, "%d %d %f", &i, &j, &v);
         i--; j--;
@@ -307,13 +309,13 @@ void graph_show(TWGraph *gr)
     int i;
     printf("===graph===");
     printf("\nwedge:  ");
-    for (int i = 0; i < gr->nonz; i++)  printf("%4.2f ", gr->wedge[i]);
+    for (i = 0; i < gr->nonz; i++)  printf("%4.2f ", gr->wedge[i]);
     printf("\nadjncy: ");
-    for (int i = 0; i < gr->nonz; i++)  printf("%4d ", gr->adjncy[i]);
+    for (i = 0; i < gr->nonz; i++)  printf("%4d ", gr->adjncy[i]);
     printf("\nxadj:   ");
-    for (int i = 0; i <= gr->size; i++) printf("%4d ", gr->xadj[i]);
+    for (i = 0; i <= gr->size; i++) printf("%4d ", gr->xadj[i]);
     printf("\nwvert:  ");
-    for (int i = 0; i < gr->size; i++)  printf("%4.2f ", gr->wvert[i]);
+    for (i = 0; i < gr->size; i++)  printf("%4.2f ", gr->wvert[i]);
     printf("\n============\n");
 }
 

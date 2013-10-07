@@ -3,7 +3,7 @@
 
 /***************************************************
 * File: md.h
-* This file consists of Minimal Degree subroutines
+* This file consists of Minimum Degree subroutines
 ***************************************************/
 
 #include "common.h"

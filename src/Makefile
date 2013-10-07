@@ -1,6 +1,7 @@
 CC = gcc
 DEPS = unit.h core.h runit.h rcm.h md.h nd.h graphics.h cholesky.h solver.h
-CFLAGS += -g -std=c99 -I.
+MYFALGS = 
+CFLAGS += -g -std=c99 -I. $(MYFLAGS)
 LIBS = -lm
 PNGLIBS = -lpng
 

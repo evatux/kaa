@@ -28,7 +28,7 @@ void cholesky_preanalysis(TMatrix_DCSR *A, real threshold, int *pre_neps)
             for (ci = A->row_ptr[i]; ci < A->row_ptr[i+1]; ci++)
                 if ((A->col_ind[ci] < i) && (A->val[ci] != 0.))
                 {
-                    flag = 0; 
+                    flag = 0;
                     break;
                 }
             if (flag)

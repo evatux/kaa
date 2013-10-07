@@ -13,7 +13,7 @@
 #include "core.h"
 
 #ifdef _TEST_DOUBLE
-#define INV_EPS             1e-10
+#define INV_EPS             1e-300
 #define LAMBDA_MIN_DELTA    1e-4
 #define LAMBDA_MAX_DELTA    1e-4
 #define MAX_ITER            1000
