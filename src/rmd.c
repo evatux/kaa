@@ -41,17 +41,15 @@ static int find_permutation(TWGraph *gr, int **_perm, int **_invp, real threshol
 
     // vdegr[0] = { ... } - auxilary ((n-1)-th depth) "degree"
     // vdegr[1] = { ... } - final    (    n-th depth) "degree"
-    int *vdegr[2];
-
-    for (i = 0; i < 2; ++i)
-        vdegr[i] = (int*)malloc(sizeof(int)*size);
-
-    if ( !vdegr[0] || !vdegr[1] )
+    int *array = (int*)malloc(sizeof(int)*2*size);
+    if ( !array )
     {
-        if (vdegr[0]) free(vdegr[0]);
-        if (vdegr[1]) free(vdegr[1]);
+        free(perm);
+        free(invp);
         return ERROR_MEMORY_ALLOCATION;
     }
+
+    int *vdegr[2] = { &array[0], &array[size] };
 
     for (v = 0; v < size; ++v)
     {
@@ -67,9 +65,8 @@ static int find_permutation(TWGraph *gr, int **_perm, int **_invp, real threshol
         //     degree`[v] += degree[w];
         for (v = 0; v < size; ++v)
         {
-            vdegr[1][v] = vdegr[0][v];
             for (w = gr->xadj[v]; w < gr->xadj[v+1]; ++w)
-                vdegr[1][v] += vdegr[0][w];
+                vdegr[1][v] += vdegr[0][gr->adjncy[w]];
         }
 
         // updating level
@@ -81,23 +78,22 @@ static int find_permutation(TWGraph *gr, int **_perm, int **_invp, real threshol
     // from smaller to larger value of "degree"
     
     // make an array ( (degr[v], v) )
-    int *array = vdegr[0];
-    for (v = 0; v < 2*size; v+=2)  // this cycle has data dependencies
+    for (v = 0; v < size; ++v)  // this cycle has data dependencies
     {
-        array[v]   = vdegr[1][v];
-        array[v+1] = v;
+        array[2*v+0] = vdegr[1][v];
+        array[2*v+1] = v;
     }
+
     qsort(array, size, 2*sizeof(int), compare); // hack: sort pairs (degr[v], v) by first argument
 
     for (v = 0; v < size; ++v)
     {
-        w = array[2*v+1]; w --> v
+        w = array[2*v+1]; // w --> v
         perm[w] = v;
         invp[v] = w;
     }
 
-    for (i = 0; i < 2; ++i)
-        free(vdegr[i]);
+    free(array);
 
 #ifdef _DEBUG_LEVEL_1
         int __i;
@@ -120,7 +116,9 @@ int rmd(TMatrix_DCSR *matr, real threshold)
 {
     TWGraph gr;
     int *perm, *invp;
-    int err = 0;
+    int err = ERROR_NO_ERROR;
+
+    if (threshold < 1) return ERROR_NO_ERROR;
 
 #ifdef _DEBUG_LEVEL_0
 printf("[debug(0)]{rmd}: graph_builder\n");

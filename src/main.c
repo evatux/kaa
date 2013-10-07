@@ -6,6 +6,7 @@
 #include "core.h"
 #include "rcm.h"
 #include "md.h"
+#include "rmd.h"
 #include "nd.h"
 #include "cholesky.h"
 #include "solver.h"
@@ -13,6 +14,7 @@
 #define RCM 1
 #define MD  2
 #define ND  3
+#define RMD 4
 
 #define SAFE( f ) \
     do {                                                \
@@ -55,7 +57,7 @@ void print_usage_and_exit() {
     printf("  %-20s %-10s\t%s\n", "-m|--modified_only", "", "make only modified algorithm");
     printf("  %-20s %-10s\t%s\n", "-r|--reordering_save", "", "save reordering matrix in csr format (matrix-out-pattern should be defined)");
     printf("  %-20s %-10s\t%s\n", "-f|--florida_file", "", "matrix-in-file is represented in florida collection format (.mtx)");
-    printf("  %-20s %-10s\t%s\n", "-a|--algorithm", "[rcm|md|nd]", "set reordering algorithm (rcm by default)");
+    printf("  %-20s %-10s\t%s\n", "-a|--algorithm", "[rcm|rmd|md|nd]", "set reordering algorithm (rcm by default)");
     printf("  %-20s %-10s\t%s\n", "-n|--separate_png", "", "make reordering and cholesky pictures separately");
 
     exit(2);
@@ -157,6 +159,9 @@ void load_config(int argc, char** argv, config_t *config) {
             if (!strcmp(argv[cur_opt], "nd"))
                 config->algorithm = ND;
             else
+            if (!strcmp(argv[cur_opt], "rmd"))
+                config->algorithm = RMD;
+            else
                  print_usage_and_exit(argv[0]);
         } else
         {
@@ -199,7 +204,16 @@ int main(int argc, char** argv) {
         strcpy(oalg, "ond");
         strcpy(zalg, "znd");
         reorderer = nd;
+     } else
+     if (config.algorithm == RMD)
+     {
+        strcpy(ALG, "RMD");
+        strcpy(alg, "rmd");
+        strcpy(oalg, "ormd");
+        strcpy(zalg, "zrmd");
+        reorderer = rmd;
      }
+
 
     FILE* inf = (config.info_file == NULL)?stdout:fopen(config.info_file, "w");
     if (inf == NULL) inf = stdout;
