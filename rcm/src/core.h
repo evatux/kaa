@@ -50,6 +50,7 @@ typedef struct {
 } TMatrix_DCSR;
 
 //  Matrix & Graph interface
+int  matrix_create(TMatrix_DCSR* /*matr*/, int /*size*/, int /*nonz*/, int /*clean_flag*/);
 int  matrix_load(TMatrix_DCSR* /*matr*/, const char* /*filename*/);
 int  matrix_load_fmc(TMatrix_DCSR* /*matr*/, const char* /*filename*/);
 int  matrix_save(TMatrix_DCSR* /*matr*/, const char* /*filename*/);

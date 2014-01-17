@@ -11,6 +11,42 @@
     #include "graphics.h"
 #endif
 
+int matrix_create(TMatrix_DCSR *matr, int size, int nonz, int clean_flag)
+{
+    matr->size = size;
+    matr->nonz = nonz;
+    matr->diag    = (real*)malloc(sizeof(real)*size); 
+    matr->val     = (real*)malloc(sizeof(real)*nonz);
+    matr->col_ind = (int* )malloc(sizeof(int )*nonz);
+    matr->row_ptr = (int* )malloc(sizeof(int )*(size+1));
+
+    if ( NULL == matr->diag ||
+         NULL == matr->val  ||
+         NULL == matr->col_ind || 
+         NULL == matr->row_ptr ) 
+    {
+        if (matr->diag)    free(matr->diag);
+        if (matr->val)     free(matr->val);
+        if (matr->col_ind) free(matr->col_ind);
+        if (matr->row_ptr) free(matr->row_ptr);
+        matr->size = matr->nonz = 0;
+
+        fprintf(stderr, "error [matrix_create]: memory allocation error\n");
+        return ERROR_MEMORY_ALLOCATION;
+    }
+
+    matr->row_ptr[0] = 0;
+
+    if (clean_flag)
+    {
+        int i;
+        for (i = 0; i < size; ++i) matr->diag[i] = 0.;
+        for (i = 0; i < nonz; ++i) matr->val[i]  = 0.;
+    }
+
+    return ERROR_NO_ERROR;
+}
+
 int matrix_load(TMatrix_DCSR *matr, const char* filename)
 {
     int size, nonz;
