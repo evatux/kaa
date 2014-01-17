@@ -80,6 +80,7 @@ int  build_matrix(TWGraph* /*gr*/, TMatrix_DCSR* /*matr*/, int /*flag_new*/);
 
 //  Matrix <--> Matrix interface
 int  matrix_copy(TMatrix_DCSR* /*src*/, TMatrix_DCSR* /*dst*/);
+int  matrix_copy_fix(TMatrix_DCSR* /*src*/, TMatrix_DCSR* /*dst*/);
 int  matrix_convert_simp2dcsr(TMatrix_Simple* /*src*/, TMatrix_DCSR*   /*dst*/);
 int  matrix_convert_dcsr2simp(TMatrix_DCSR*   /*src*/, TMatrix_Simple* /*dst*/);
 

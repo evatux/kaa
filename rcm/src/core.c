@@ -687,6 +687,62 @@ int matrix_copy(TMatrix_DCSR *src, TMatrix_DCSR *dst)
     return ERROR_NO_ERROR;
 }
 
+int  matrix_copy_fix(TMatrix_DCSR *src, TMatrix_DCSR *dst)
+{
+    int size = src->size;
+    int nonz = 0;
+    int i, j;
+
+    for (i = 0; i < src->size; ++i) {
+        int zero_flag = 1;
+        for (j = src->row_ptr[i]; j < src->row_ptr[i+1]; ++j) {
+            if (src->col_ind[j] >= 0) { nonz++; zero_flag = 0; }
+        }
+        if (zero_flag) size--;
+    }
+
+    dst->size = size;
+    dst->nonz = nonz;
+    dst->diag    = (real*)malloc(sizeof(real)*size);
+    dst->val     = (real*)malloc(sizeof(real)*nonz);
+    dst->col_ind = ( int*)malloc(sizeof( int)*nonz);
+    dst->row_ptr = ( int*)malloc(sizeof( int)*(size+1));
+
+    if ( NULL == dst->diag || NULL == dst->val || NULL == dst->col_ind || NULL == dst->row_ptr ) {
+        if (dst->diag   ) free(dst->diag   );
+        if (dst->val    ) free(dst->val    );
+        if (dst->col_ind) free(dst->col_ind);
+        if (dst->row_ptr) free(dst->row_ptr);
+
+        fprintf(stderr, "error [matrix_copy_fix]: memory allocation error\n");
+        return ERROR_MEMORY_ALLOCATION;
+    }
+
+    int fixed_i = 0;
+    int fixed_j = 0;
+    dst->row_ptr[0] = 0;
+
+    for (i = 0, fixed_i = 0; i < src->size; ++i) {
+        int zero_flag = 1;
+        for (j = src->row_ptr[i]; j < src->row_ptr[i+1]; ++j) {
+            if (src->col_ind[j] >= 0)
+            {
+                dst->col_ind[fixed_j] = src->col_ind[j];
+                dst->val[fixed_j]     = src->val[j];
+                fixed_j++;
+                zero_flag = 0;
+            }
+        }
+        if (!zero_flag) {
+            dst->diag[fixed_i] = src->diag[i];
+            fixed_i++;
+            dst->row_ptr[fixed_i] = fixed_j;
+        }
+    }
+
+    return ERROR_NO_ERROR;
+}
+
 int matrix_convert_simp2dcsr(TMatrix_Simple *src, TMatrix_DCSR *dst)
 {
     int i, j, size, nonz;
