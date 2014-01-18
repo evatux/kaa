@@ -1,7 +1,6 @@
 CC = gcc
-DEPS = unit.h core.h runit.h rcm.h rmd.h md.h nd.h graphics.h cholesky.h solver.h
 MYFALGS = 
-CFLAGS += -g -std=c99 -I. $(MYFLAGS)
+CFLAGS += -g -std=c99 $(MYFLAGS)
 LIBS = -lm
 PNGLIBS = -lpng
 
@@ -13,16 +12,30 @@ ifeq ($(Wall),1)
 CFLAGS += -Wall
 endif
 
+ROOT_DIR  		= ../..
+COMMON_DIR  	= $(ROOT_DIR)/common
+RCM_DIR   		= $(ROOT_DIR)/rcm/src
+
+RCM       		= runit  rcm rmd md nd
+RCM_DEPS  		= $(addsuffix .h, $(RCM))
+RCM_OBJS  		= $(addsuffix .o, $(RCM))
+
+COMMON       	= unit core graphics cholesky solver
+COMMON_DEPS  	= $(addsuffix .h, $(COMMON)) common.h
+COMMON_OBJS  	= $(addsuffix .o, $(COMMON))
+COMMON_OBJS_WITH_PATH = $(addprefix $(COMMON_DIR)/, $(COMMON_OBJS))
+
 all:  rcm.out
 
-test.out: test.o core.o runit.o rcm.o rmd.o md.o nd.o graphics.o unit.o cholesky.o solver.o
-	$(CC) $^ $(LIBS) $(PNGLIBS) -o ../bin/$@
+rcm.out: main.o $(RCM_OBJS)
+	cd $(COMMON_DIR) && make Wall=$(Wall) DEBUG=$(DEBUG) $(COMMON_OBJS)
+	$(CC) $^ $(COMMON_OBJS_WITH_PATH) $(LIBS) $(PNGLIBS) -o ../bin/$@
 
-rcm.out: main.o core.o runit.o rcm.o rmd.o md.o nd.o graphics.o unit.o cholesky.o solver.o
-	$(CC) $^ $(LIBS) $(PNGLIBS) -o ../bin/$@
+%.o: %.c $(RCM_DEPS)
+	$(CC) -c $< $(CFLAGS) -I$(RCM_DIR) -I$(COMMON_DIR) -o $@
 
-%.o: %.c $(DEPS)
-	$(CC) -c $< $(CFLAGS) -o $@
+full_clean: clean
+	cd $(COMMON_DIR) && make clean
 
 clean:
 	-rm -f *.o
