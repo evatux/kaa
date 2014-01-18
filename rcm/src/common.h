@@ -74,4 +74,10 @@ typedef float real;
         }                                                                                       \
     }
 
+#define PRINT_ERROR_MESSAGE_AND_EXIT(x) \
+    {                                   \
+        PRINT_ERROR_MESSAGE(x);         \
+        exit(x);                        \
+    }
+
 #endif
