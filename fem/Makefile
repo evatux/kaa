@@ -25,11 +25,13 @@ COMMON_DEPS		= $(addsuffix .h, $(COMMON)) common.h
 COMMON_OBJS		= $(addsuffix .o, $(COMMON))
 COMMON_OBJS_WITH_PATH = $(addprefix $(COMMON_DIR)/, $(COMMON_OBJS))
 
-all:  laplace_2d.out
+all:  laplace_2d.out laplace_3d.out
 
-laplace_2d.out: laplace_2d.o $(FEM_OBJS)
+common:
 	cd $(COMMON_DIR) && make Wall=$(Wall) DEBUG=$(DEBUG) $(COMMON_OBJS)
-	$(CC) $^ $(COMMON_OBJS_WITH_PATH) $(LIBS) $(PNGLIBS) -o $@
+
+%.out: %.o common
+	$(CC) $< $(COMMON_OBJS_WITH_PATH) $(LIBS) $(PNGLIBS) -o $@
 
 %.o: %.c $(FEM_DEPS)
 	$(CC) -c $< $(CFLAGS) -I$(FEM_DIR) -I$(COMMON_DIR) -o $@
