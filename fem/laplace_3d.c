@@ -39,9 +39,9 @@ int loc_off(int c0, int c1)
     int diff = c1 - c0;
 
     switch (diff) {
-        case -4: if (is_l(c1)) return 0; else break;  // bottom
+        case -4: if (is_b(c1)) return 0; else break;  // bottom
         case -2: if (is_r(c1)) return 1; else break;  // rear
-        case -1: if (is_b(c1)) return 2; else break;  // left
+        case -1: if (is_l(c1)) return 2; else break;  // left
         case  1: if (is_l(c0)) return 3; else break;  // righ
         case  2: if (is_r(c0)) return 4; else break;  // forward
         case  4: if (is_b(c0)) return 5; else break;  // top
@@ -99,7 +99,7 @@ int main(int argc, char **argv)
                 for (int c0 = 0; c0 < 8; ++c0) {
                     int e = todo[c0];
                     if (e < 0) continue;
-                    real coeff = get_coeff(j*h - h/2, i*h - h/2, k*h - h/2);
+                    real coeff = h / 6. * get_coeff(j*h - h/2, i*h - h/2, k*h - h/2);
                     m->diag[e] += esm[c0][c0] * coeff;
 
                     for (int c1 = 0; c1 < 8; ++c1) {
