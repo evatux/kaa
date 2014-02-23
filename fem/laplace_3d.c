@@ -53,6 +53,8 @@ int loc_off(int c0, int c1)
 int main(int argc, char **argv)
 {
     int  n  = (argc > 1) ? atoi(argv[1]) : 10;
+    const char* matr_fname = (argc > 2) ? argv[2] : "l3_default.csr";
+    const char* pict_fname = (argc > 3) ? argv[3] : NULL;
 
     real h  = 1. / n;
     int size = (n - 1) * (n - 1) * (n - 1);
@@ -113,13 +115,13 @@ int main(int argc, char **argv)
         }
     }
 
-    TMatrix_DCSR _l2;
-    TMatrix_DCSR *l2 = &_l2;
-    matrix_copy_fix(m, l2);
+    TMatrix_DCSR _l3;
+    TMatrix_DCSR *l3 = &_l3;
+    matrix_copy_fix(m, l3);
     matrix_destroy(m);
 
-    matrix_portrait(l2, "1.png", 20., 0, NULL);
-    matrix_save(l2, "1_fixed.csr");
+    if (pict_fname) matrix_portrait(l3, pict_fname, 20., 0, NULL);
+    matrix_save(l3, matr_fname);
 
     return 0;
 }
