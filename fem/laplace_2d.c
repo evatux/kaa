@@ -77,7 +77,7 @@ int main(int argc, char **argv)
                 if (k < 0) continue;
                 real coeff = get_coeff(j*h - h/2, i*h - h/2);
                 m->diag[k] += 1 * coeff;
-                
+
                 for (int cj = 0; cj < 4; ++cj) {
                     int off = loc_off(ci, cj);
                     if (off < 0) continue;
