@@ -15,7 +15,8 @@
 
 real get_coeff(real x, real y)
 {
-    if (fabs(x - 0.5) < 0.2 && fabs(y - 0.5) < 0.2) return 100.;
+    if (fabs(x - 0.2) < 0.15 && fabs(y - 0.7) < 0.2) return 100.;
+    if (fabs(x - y)   < 0.1  || fabs(sin(y + x)) < 0.02) return 50.;
 
     return 1.;
 }

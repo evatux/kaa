@@ -21,7 +21,7 @@
 
 real get_coeff(real x, real y, real z)
 {
-    if (0 && fabs(x - 0.5) < 0.2 && fabs(y - 0.5) < 0.2 && fabs(z - 0.5) < 0.2) return 100.;
+    if (fabs(x - 0.3) < 0.2 || fabs(y - 0.6) < 0.2 || fabs(z - 0.2) < 0.1) return 100.;
 
     return 1.;
 }
