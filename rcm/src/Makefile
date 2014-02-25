@@ -16,7 +16,7 @@ ROOT_DIR  		= ../..
 COMMON_DIR  	= $(ROOT_DIR)/common
 RCM_DIR   		= $(ROOT_DIR)/rcm/src
 
-RCM       		= runit  rcm rmd md nd
+RCM       		= runit  rcm rmd md nd wnd
 RCM_DEPS  		= $(addsuffix .h, $(RCM))
 RCM_OBJS  		= $(addsuffix .o, $(RCM))
 
