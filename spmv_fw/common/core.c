@@ -12,7 +12,9 @@
     #include "graphics.h"
 #endif
 
-int matrix_create(TMatrix_CSR *matr, int rows, int cols, int nonz, int clean_flag)
+//  Matrix CSR
+
+int  matrix_create(TMatrix_CSR *matr, int rows, int cols, int nonz, int clean_flag)
 {
     matr->rows = rows;
     matr->cols = cols;
@@ -45,7 +47,7 @@ int matrix_create(TMatrix_CSR *matr, int rows, int cols, int nonz, int clean_fla
     return ERROR_NO_ERROR;
 }
 
-int matrix_load(TMatrix_CSR *matr, const char* filename)
+int  matrix_load(TMatrix_CSR *matr, const char* filename)
 {
     int rows, cols, nonz;
     int i;
@@ -88,7 +90,7 @@ int matrix_load(TMatrix_CSR *matr, const char* filename)
     return ERROR_NO_ERROR;
 }
 
-int matrix_load_fmc(TMatrix_CSR *matr, const char* filename)
+int  matrix_load_fmc(TMatrix_CSR *matr, const char* filename)
 {
     int rows, cols, nonz;
     int it, i, j;
@@ -125,13 +127,13 @@ int matrix_load_fmc(TMatrix_CSR *matr, const char* filename)
 
     fclose(fp);
 
-    err = matrix_convert_smp2csr(&A, matr);
+    err = matrix_smp2csr(&A, matr);
     matrix_smp_destroy(&A);
 
     return err;
 }
 
-int matrix_save(TMatrix_CSR *matr, const char *filename)
+int  matrix_save(TMatrix_CSR *matr, const char *filename)
 {
     int rows, cols, nonz;
     int i;
@@ -156,41 +158,21 @@ int matrix_save(TMatrix_CSR *matr, const char *filename)
     return ERROR_NO_ERROR;
 }
 
-int matrix_portrait(TMatrix_CSR *matr, const char *filename)
+void matrix_destroy(TMatrix_CSR *matr)
+{
+    if (!matr) return;
+    matr->rows = matr->cols = matr->nonz = 0;
+    if (matr->val )     free(matr->val    );
+    if (matr->col_ind)  free(matr->col_ind);
+    if (matr->row_ptr)  free(matr->row_ptr);
+}
+
+int  matrix_portrait(TMatrix_CSR *matr, const char *filename)
 {
 #ifndef CONFIG_DISABLE_GRAPHICS
     return make_matrix_portrait(matr, filename);
 #endif
     return DE(ERROR_UNIMPLEMENTED);
-}
-
-void matrix_smp_show(TMatrix_SMP *matr)
-{
-    int i, j;
-    int rows = matr->rows;
-    int cols = matr->cols;
-    for (i = 0; i < rows; i++) {
-        for (j = 0; j < cols; j++) {
-            if ( i == j ) {
-                printf("%4.1f ", matr->val[i*cols+j]);
-            } else
-            {
-                if ( matr->val[i*cols+j] != 0. )
-                {
-                    printf("%4.1f ", matr->val[i*cols+j]);
-                } else
-                {
-#ifdef PRINT_ZEROES
-                    printf("%4.1f ", 0.0);
-#else
-                    printf("     ");
-#endif
-                }
-            }
-        }
-        printf("\n");
-    }
-    printf("\n");
 }
 
 void matrix_show(TMatrix_CSR *matr, int flag_ordered)
@@ -234,20 +216,91 @@ void matrix_show(TMatrix_CSR *matr, int flag_ordered)
     printf("\n");
 }
 
+//  Matrix SMP
+
+int  matrix_smp_create(TMatrix_SMP *matr, int rows, int cols)
+{
+    matr->val = malloc(sizeof(real)*rows*cols);
+    if (matr->val == NULL) {
+        matr->rows = 0;
+        matr->cols = 0;
+        return DE(ERROR_MEMORY);
+    }
+    matr->rows = rows;
+    matr->cols = cols;
+    return ERROR_NO_ERROR;
+}
+
 void matrix_smp_destroy(TMatrix_SMP *matr)
 {
     if (!matr) return;
     if (matr->val) free(matr->val);
 }
 
-void matrix_destroy(TMatrix_CSR *matr)
+void matrix_smp_show(TMatrix_SMP *matr)
 {
-    if (!matr) return;
-    matr->rows = matr->cols = matr->nonz = 0;
-    if (matr->val )     free(matr->val    );
-    if (matr->col_ind)  free(matr->col_ind);
-    if (matr->row_ptr)  free(matr->row_ptr);
+    int i, j;
+    int rows = matr->rows;
+    int cols = matr->cols;
+    for (i = 0; i < rows; i++) {
+        for (j = 0; j < cols; j++) {
+            if ( matr->val[i*cols+j] != 0. )
+            {
+                printf("%4.1f ", matr->val[i*cols+j]);
+            } else
+            {
+                #ifdef PRINT_ZEROES
+                    printf("%4.1f ", 0.0);
+                #else
+                    printf("     ");
+                #endif
+            }
+        }
+        printf("\n");
+    }
+    printf("\n");
 }
+
+//  Vector_SMP
+
+int  vector_create(TVector_SMP *vect, int size)
+{
+    vect->val = malloc(sizeof(real)*size);
+    if (vect->val == NULL) {
+        vect->size = 0;
+        return DE(ERROR_MEMORY);
+    }
+    vect->size = size;
+    return ERROR_NO_ERROR;
+}
+
+void vector_destroy(TVector_SMP *vect)
+{
+    if (!vect) return;
+    if (vect->val) free(vect->val);
+}
+
+void vector_show(TVector_SMP *vect)
+{
+    int i;
+    int size = vect->size;
+    for (i = 0; i < size; i++) {
+        if ( vect->val[i] != 0. )
+        {
+            printf("%4.1f ", vect->val[i]);
+        } else
+        {
+            #ifdef PRINT_ZEROES
+                printf("%4.1f ", 0.0);
+            #else
+                printf("     ");
+            #endif
+        }
+    }
+    printf("\n");
+}
+
+//  Matrix-Matrix interface
 
 int matrix_copy(TMatrix_CSR *src, TMatrix_CSR *dst)
 {
@@ -276,7 +329,7 @@ int matrix_copy(TMatrix_CSR *src, TMatrix_CSR *dst)
     return ERROR_NO_ERROR;
 }
 
-int matrix_convert_smp2csr(TMatrix_SMP *src, TMatrix_CSR *dst)
+int matrix_smp2csr(TMatrix_SMP *src, TMatrix_CSR *dst)
 {
     int i, j, rows, cols, nonz;
     rows = dst->rows = src->rows;
@@ -316,7 +369,7 @@ int matrix_convert_smp2csr(TMatrix_SMP *src, TMatrix_CSR *dst)
     return ERROR_NO_ERROR;
 }
 
-int matrix_convert_csr2smp(TMatrix_CSR *src, TMatrix_SMP *dst)
+int matrix_csr2smp(TMatrix_CSR *src, TMatrix_SMP *dst)
 {
     int i, j, rows, cols;
     rows = dst->rows = src->rows;
@@ -334,6 +387,34 @@ int matrix_convert_csr2smp(TMatrix_CSR *src, TMatrix_SMP *dst)
         for (j = src->row_ptr[i]; j < src->row_ptr[i+1]; ++j) {
             dst->val[i*cols+src->col_ind[j]] = src->val[j];
         }
+    }
+
+    return ERROR_NO_ERROR;
+}
+
+//  Matrix-Vector interface
+
+int  matrix_vector_mul(TMatrix_CSR *matr, TVector_SMP *in, TVector_SMP *out)
+{
+    int rows     = matr->rows;
+    int cols     = matr->cols;
+    int in_size  = in->size;
+    int out_size = out->size;
+
+    if (!(rows == out_size && cols == in_size))
+    {
+        D(fprintf(stderr, "matr: %d x %d\nin: %d, out: %d\n",
+                    rows, cols, in_size, out_size));
+        return DE(ERROR_INVALID_CONF);
+    }
+
+    for (int i = 0; i < rows; ++i) {
+        real s = 0.;
+        for (int j = matr->row_ptr[i]; j < matr->row_ptr[i+1]; ++j)
+        {
+            s += matr->val[j] * in->val[matr->col_ind[j]];
+        }
+        out->val[i] = s;
     }
 
     return ERROR_NO_ERROR;

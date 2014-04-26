@@ -39,6 +39,7 @@ typedef float real;
 // define ERROR codes
 #define ERROR_NO_ERROR           0
 #define ERROR_MEMORY             2
+#define ERROR_INVALID_CONF       3
 #define ERROR_FILE_IO           17
 #define ERROR_DIV_BY_ZERO       30
 #define ERROR_NEGATIVE_SQRT     31
@@ -54,6 +55,9 @@ static int print_error_message(int err, const char* func)
     switch(err) { 
         case ERROR_MEMORY:
             fprintf(stderr, "memory allocation error\n");
+            break;
+        case ERROR_INVALID_CONF:
+            fprintf(stderr, "invalid configuration\n");
             break;
         case ERROR_FILE_IO:
             fprintf(stderr, "file input/output error\n");
