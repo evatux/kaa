@@ -15,7 +15,7 @@
 #define PRINT_ZEROES
 #define MAX_FILENAME_LENGTH 1024
 
-#define _DOUBLE 
+//#define _DOUBLE
 #ifdef  _DOUBLE
 typedef double real;
 #define FABS fabs
@@ -36,10 +36,15 @@ typedef float real;
 #define MAX2(x,y) (((x)>(y))?(x):(y))
 #define SWAP(x,y) do { typeof(x) tmp = (x); (x) = (y); (y) = tmp; } while(0)
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 // define ERROR codes
 #define ERROR_NO_ERROR           0
 #define ERROR_MEMORY             2
 #define ERROR_INVALID_CONF       3
+#define ERROR_INVALID_DESC       4
 #define ERROR_FILE_IO           17
 #define ERROR_DIV_BY_ZERO       30
 #define ERROR_NEGATIVE_SQRT     31
@@ -52,12 +57,15 @@ static int print_error_message(int err, const char* func)
     if (err == ERROR_NO_ERROR) return err;
 
     fprintf(stderr, "error(%s:%d): ", func, err);
-    switch(err) { 
+    switch(err) {
         case ERROR_MEMORY:
             fprintf(stderr, "memory allocation error\n");
             break;
         case ERROR_INVALID_CONF:
             fprintf(stderr, "invalid configuration\n");
+            break;
+        case ERROR_INVALID_DESC:
+            fprintf(stderr, "invalid descriptor\n");
             break;
         case ERROR_FILE_IO:
             fprintf(stderr, "file input/output error\n");
@@ -87,13 +95,21 @@ static int print_error_message(int err, const char* func)
 #define _DEBUG_LEVEL 10
 #ifdef  _DEBUG
 #define DE(err) print_error_message(err, __func__)
+#define DSAFE(x) do { \
+    int _err = x; \
+    if (_err) { fprintf(stderr, "%s -> err:%d\n", #x, _err); return DE(_err); }\
+    } while(0)
 #define DL(level,x) do { \
     if (_DEBUG_LEVEL >= level) { \
-    fprintf(stderr, "%s(%d:%s) ", __FILE__, __LINE__, __func__); \
-    x; }}
+    fprintf(stderr, "%s(%d:%s)\n", __FILE__, __LINE__, __func__); \
+    x; }} while(0)
 #define D(x) DL(0,x)
 #else
 #define DE(err) err
+#define DSAFE(x) do { \
+    int _err = x; \
+    if (_err) return DE(_err);\
+    } while(0)
 #define DL(level,x)
 #define D(x)
 #endif

@@ -97,7 +97,7 @@ static int save_png_to_file (bitmap_t *bitmap, const char *path)
     /* Initialize rows of PNG. */
     row_pointers = png_malloc (png_ptr, bitmap->height * sizeof (png_byte *));
     for (y = 0; y < bitmap->height; ++y) {
-        png_byte *row = 
+        png_byte *row =
             png_malloc (png_ptr, sizeof (uint8_t) * bitmap->width * pixel_size);
         row_pointers[y] = row;
         for (x = 0; x < bitmap->width; ++x) {
@@ -178,8 +178,8 @@ int make_matrix_portrait(TMatrix_CSR *matr, const char *filename)
         for (ci = matr->row_ptr[i]; ci < matr->row_ptr[i+1]; ci++)
         {
             put_point(
-                    matrix_pixel_at(&portrait, 
-                        i,          matr->col_ind[ci], 
+                    matrix_pixel_at(&portrait,
+                        i,          matr->col_ind[ci],
                         matr->rows, matr->cols),
                     CL_BLACK, 1.);
         }

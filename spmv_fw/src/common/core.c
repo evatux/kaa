@@ -24,8 +24,8 @@ int  matrix_create(TMatrix_CSR *matr, int rows, int cols, int nonz, int clean_fl
     matr->row_ptr = (int* )malloc(sizeof(int )*(rows+1));
 
     if ( NULL == matr->val  ||
-         NULL == matr->col_ind || 
-         NULL == matr->row_ptr ) 
+         NULL == matr->col_ind ||
+         NULL == matr->row_ptr )
     {
         if (matr->val)     free(matr->val);
         if (matr->col_ind) free(matr->col_ind);
@@ -57,7 +57,7 @@ int  matrix_load(TMatrix_CSR *matr, const char* filename)
     int  *row_ptr;
 
     FILE* fp = fopen(filename, "r");
-    if ( fp == NULL ) return DE(ERROR_FILE_IO); 
+    if ( fp == NULL ) return DE(ERROR_FILE_IO);
     fscanf(fp, "%d %d %d", &rows, &cols, &nonz);
     DL(1, fprintf(stderr, "[debug] %s: rows = %d, cols = %d, nonz = %d\n",
                 filename, rows, cols, nonz));
@@ -130,7 +130,7 @@ int  matrix_load_fmc(TMatrix_CSR *matr, const char* filename)
     err = matrix_smp2csr(&A, matr);
     matrix_smp_destroy(&A);
 
-    return err;
+    return DE(err);
 }
 
 int  matrix_save(TMatrix_CSR *matr, const char *filename)
@@ -338,7 +338,7 @@ int matrix_smp2csr(TMatrix_SMP *src, TMatrix_CSR *dst)
     nonz = 0;
     for (i = 0; i < rows; ++i)
         for (j = 0; j < cols; ++j)
-            if ( (i != j) && (src->val[i*cols + j] != 0.) ) nonz++;
+            if (src->val[i*cols + j] != 0.) nonz++;
 
     dst->nonz    = nonz;
     dst->val     = (real*)malloc(sizeof(real)*nonz);
