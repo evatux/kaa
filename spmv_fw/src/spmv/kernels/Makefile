@@ -26,7 +26,7 @@ COMMON_DIR      = $(ROOT_DIR)/common
 SPMV_DIR        = $(ROOT_DIR)/spmv
 KERS_DIR        = $(SPMV_DIR)/kernels
 
-KERS            = ref $(MKL_KERS)
+KERS            = ref ref_omp $(MKL_KERS)
 KERS_DEPS       = $(addsuffix .h, $(KERS))
 KERS_OBJS       = $(addsuffix .o, $(KERS))
 

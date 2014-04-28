@@ -32,10 +32,12 @@ typedef spmv_kernel_t (*spmv_kernel_foo_t)();
 //  SpMV kernels
 
 spmv_kernel_t ref();
+spmv_kernel_t ref_omp();
 spmv_kernel_t mkl_spmv();
 
 static spmv_kernel_foo_t kernel_list[] = {
     ref,
+    ref_omp,
 #ifdef _MKL_ENABLE
     mkl_spmv,
 #endif
