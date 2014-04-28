@@ -1,6 +1,7 @@
 CC = gcc
 DEFS =
 CFLAGS = -g -std=c99
+OMPFLAGS = -fopenmp
 INC_DIR =
 MKL_KERS =
 
@@ -32,6 +33,9 @@ KERS_OBJS       = $(addsuffix .o, $(KERS))
 INC_DIR         += $(COMMON_DIR) $(SPMV_DIR) $(KERS_DIR)
 
 all:  $(KERS_OBJS)
+
+%_omp.o: %_omp.c $(KERS_DEPS)
+	$(CC) -c $< $(OMPFLAGS) $(CFLAGS) $(DEFS) $(addprefix -I, $(INC_DIR)) -o $@
 
 %.o: %.c $(KERS_DEPS)
 	$(CC) -c $< $(CFLAGS) $(DEFS) $(addprefix -I, $(INC_DIR)) -o $@
