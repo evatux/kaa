@@ -9,11 +9,40 @@
 #include "spmv.h"
 #include "bench.h"
 
-double timer()
+#define START   1
+#define STOP    2
+
+long long __rdtsc();
+
+double timer(int act)
 {
-    struct timeval tm;
-    gettimeofday( &tm, NULL );
-    return (double)tm.tv_sec + (double)tm.tv_usec / 1e6;
+    static long long t = 0;
+    if (act == START) {
+        t = __rdtsc();
+        return 0.;
+    } else {
+        long long t2 = __rdtsc();
+        return (t2 - t)/3.3e9;
+    }
+
+    static struct timeval tm = { 0 };
+    if (act == START)
+    {
+        gettimeofday( &tm, NULL );
+        return 0.;
+    } else
+    {
+        struct timeval tm_fin;
+        gettimeofday( &tm_fin, NULL );
+        long sec    = tm_fin.tv_sec  - tm.tv_sec;
+        long usec   = tm_fin.tv_usec - tm.tv_usec;
+        if (usec < 0) {
+            sec += 1;
+            usec += 1000*1000;
+        }
+        printf("%ld %ld\n", sec, usec);
+        return (double)sec  + (double)usec / 1e6;
+    }
 }
 
 int perf(spmv_kernel_t *ker, info_t info, perf_t *p)
@@ -34,18 +63,18 @@ int perf(spmv_kernel_t *ker, info_t info, perf_t *p)
 
     desc_t *desc;
 
-    double dt = timer();
+    timer(START);
     DSAFE(ker->create(&desc, matr, info));
-    dt = timer() - dt;
+    double dt = timer(STOP);
     p->setup_time = dt;
 
     double best_dt = 1e100;
     for (int r = 0; r < rounds; ++r) {
-        double dt = timer();
+        timer(START);
         for (int b = 0; b < batch; ++b) {
             DSAFE(ker->compute(desc, &in, &out));
         }
-        dt = timer() - dt;
+        dt = timer(STOP);
         if (dt < best_dt) best_dt = dt;
     }
 
