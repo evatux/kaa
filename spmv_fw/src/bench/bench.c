@@ -60,8 +60,10 @@ int main(int argc, char **argv)
 
     TMatrix_CSR _matr;
     TMatrix_CSR *matr = &_matr;
-    if (conf.fmc_flag) matrix_load_fmc(matr, conf.matr_in_file);
-    else matrix_load(matr, conf.matr_in_file);
+    if (conf.fmc_flag)
+        DSAFE(matrix_load_fmc(matr, conf.matr_in_file));
+    else
+        DSAFE(matrix_load    (matr, conf.matr_in_file));
 
     if (conf.correctness) return check_correctness(&conf, matr);
 
