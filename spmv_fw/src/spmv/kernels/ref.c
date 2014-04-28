@@ -59,7 +59,7 @@ spmv_kernel_t ref()
         (spmv_desc_create_t)ref_desc_create,
         (spmv_compute_t)ref_compute,
         (spmv_desc_destroy_t)ref_desc_destroy,
-        "reference_code"
+        "ref_code"
     };
     return ker;
 }
