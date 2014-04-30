@@ -18,6 +18,16 @@ MKL_LIBS = $(addprefix -L, $(MKLLDIR)) -Wl,-Bstatic $(MKLLIBS) -Wl,-Bdynamic
 CFLAGS  += -D_MKL_ENABLE
 endif
 
+ifneq ($(MKL_NEW_SPMV),0)
+ifndef MKLNSROOT
+MKLNSROOT   = /opt/intel/composer_xe_2013_sp1.2.144/mkl
+endif
+MKLNSLIBS  = -lmkl_spmv_pkg_sse
+MKLNSLDIR  = $(MKLNSROOT)/lib/intel64
+MKLNS_LIBS = $(addprefix -L, $(MKLNSLDIR)) -Wl,-Bstatic $(MKLNSLIBS) -Wl,-Bdynamic
+CFLAGS     += -D_MKL_NEW_SPMV_ENABLE
+endif
+
 ifeq ($(Wall),1)
 CFLAGS += -Wall
 endif
@@ -46,7 +56,7 @@ all:  $(BENCH_OUT)
 	$(CC) $(CFLAGS) $(DEFS) -c $< $(addprefix -I, $(INC_DIR)) -o $@
 
 %.out: $(BENCH_OBJS)
-	$(CC) $(CFLAGS) $(DEFS) $(ALL_OBJS) -o $(OUT_DIR)/$@ $(MKL_LIBS) $(LIBS)
+	$(CC) $(CFLAGS) $(DEFS) $(ALL_OBJS) -o $(OUT_DIR)/$@ $(MKLNS_LIBS) $(MKL_LIBS) $(LIBS)
 
 clean:
 	-rm -f *.out
