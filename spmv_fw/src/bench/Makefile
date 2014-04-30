@@ -9,7 +9,9 @@ CFLAGS += -D_DEBUG
 endif
 
 ifneq ($(MKL),0)
+ifndef MKLROOT
 MKLROOT  = /opt/intel/composer_xe_2013_sp1.2.144/mkl
+endif
 MKLLIBS  = -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5
 MKLLDIR  = $(MKLROOT)/lib/intel64 $(MKLROOT)/../compiler/lib/intel64
 MKL_LIBS = $(addprefix -L, $(MKLLDIR)) -Wl,-Bstatic $(MKLLIBS) -Wl,-Bdynamic

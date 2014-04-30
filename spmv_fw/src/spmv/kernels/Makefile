@@ -6,7 +6,9 @@ INC_DIR =
 MKL_KERS =
 
 ifneq ($(MKL),0)
+ifndef MKLROOT
 MKLROOT  = /opt/intel/composer_xe_2013_sp1.2.144/mkl
+endif
 MKLIDIR  = $(MKLROOT)/include
 INC_DIR += $(MKLIDIR)
 MKL_KERS = mkl_spmv
