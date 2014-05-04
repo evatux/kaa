@@ -12,9 +12,10 @@
 #define START   1
 #define STOP    2
 
+#ifdef __INTEL_COMPILER
 long long __rdtsc();
 
-double timer(int act)
+static double timer_rdtsc(int act)
 {
     static long long t = 0;
     if (act == START) {
@@ -24,7 +25,11 @@ double timer(int act)
         long long t2 = __rdtsc();
         return (t2 - t)/3.3e9;
     }
+}
+#endif
 
+static double timer_gettimeofday(int act)
+{
     static struct timeval tm = { 0 };
     if (act == START)
     {
@@ -40,9 +45,14 @@ double timer(int act)
             sec += 1;
             usec += 1000*1000;
         }
-        printf("%ld %ld\n", sec, usec);
+//        printf("%ld %ld\n", sec, usec);
         return (double)sec  + (double)usec / 1e6;
     }
+}
+
+static inline double timer(int act)
+{
+    timer_gettimeofday(act);
 }
 
 int perf(spmv_kernel_t *ker, info_t info, perf_t *p)
