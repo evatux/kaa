@@ -9,4 +9,4 @@ $(SRC_DIR):
 	$(MAKE) -C $@ DIR.OUT=$(CUR_DIR) CC=icc CFLAGS="-O3" MKLNSROOT=$(MKL_NS_DIR)
 
 clean:
-	$(MAKE) -C $(SRC_DIR) clean
+	$(MAKE) -C $(SRC_DIR) clean DIR.OUT=$(CUR_DIR)
