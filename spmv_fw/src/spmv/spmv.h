@@ -33,12 +33,14 @@ typedef spmv_kernel_t (*spmv_kernel_foo_t)();
 
 spmv_kernel_t ref();
 spmv_kernel_t ref_omp();
+spmv_kernel_t gblock_omp();
 spmv_kernel_t mkl_spmv();
 spmv_kernel_t mkl_new_spmv();
 
 static spmv_kernel_foo_t kernel_list[] = {
     ref,
     ref_omp,
+//    gblock_omp,
 #ifdef _MKL_ENABLE
     mkl_spmv,
 #endif
