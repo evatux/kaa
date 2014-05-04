@@ -50,6 +50,7 @@ void load_config(int argc, char** argv, config_t *config)
         print_kernel_list_and_exit();
 
     config->matr_in_file    = argv[1];
+    config->info_flag       = 0;
     config->fmc_flag        = 0;
     config->correctness     = CORRECTNESS_NO;
     config->batch           = 0;
@@ -63,6 +64,10 @@ void load_config(int argc, char** argv, config_t *config)
     config->ker_num         = 0;
 
     while (++cur_opt < argc) {
+        if (is_opt(argv[cur_opt], "--info", "-i"))
+        {
+            config->info_flag = 1;
+        } else
         if (is_opt(argv[cur_opt], "--florida_file", "-f"))
         {
             config->fmc_flag = 1;

@@ -6,6 +6,25 @@
 #include "spmv.h"
 #include "bench.h"
 
+static void print_info(config_t *conf, TMatrix_CSR *matr)
+{
+    char *matrix_name = strrchr(conf->matr_in_file, '/') + 1;
+
+    double sz = matr->nonz * sizeof(real);
+    const char sn[][3] = { "  ", "KB", "MB", "GB" };
+    int sz_mod = 0;
+    while (sz > 1024.)
+    {
+        sz /= 1024.;
+        sz_mod++;
+    }
+
+    printf("matrix: %s (%d x %d: %ld) %.2f %s\n", matrix_name,
+            matr->rows, matr->cols, matr->nonz, sz, sn[sz_mod]);
+    printf("config: rhs %d, batch %d, rounds %d\n",
+            conf->rhs, conf->batch, conf->rounds);
+}
+
 static int check_correctness(config_t *conf, TMatrix_CSR *matr)
 {
     int glob_fail = 0;
@@ -23,8 +42,8 @@ static int check_correctness(config_t *conf, TMatrix_CSR *matr)
         DSAFE(correctness(&ker, conf->info[ki], &c));
 
         if (c.fail) glob_fail = 1;
-        printf("%-16s%-10.2g%-8s\n", ker.name, c.err,
-                (c.fail) ? "FAILED" : "PASSED");
+        printf("%-24s%s (%.2g)\n", ker.name,
+                (c.fail) ? "FAILED" : "PASSED", c.err);
     }
     return !glob_fail;
 }
@@ -46,8 +65,8 @@ static int check_perf(config_t *conf, TMatrix_CSR *matr)
         spmv_kernel_t ker = kernel_list[conf->kernel[ki]]();
         DSAFE(perf(&ker, conf->info[ki], &p));
 
-        printf("%-16s%4d rhs %10.2g s %10.2g s %10.2g gf\n",
-                ker.name, p.rhs, p.setup_time, p.time, p.gf);
+        printf("%-20ssetup %.2e s %16.2e s %10.2g gf\n",
+                ker.name, p.setup_time, p.time, p.gf);
     }
 
     return ERROR_NO_ERROR;
@@ -65,7 +84,11 @@ int main(int argc, char **argv)
     else
         DSAFE(matrix_load    (matr, conf.matr_in_file));
 
-    if (conf.correctness) return check_correctness(&conf, matr);
+    if (conf.info_flag)
+        print_info(&conf, matr);
+
+    if (conf.correctness)
+        return check_correctness(&conf, matr);
 
     return check_perf(&conf, matr);
 }

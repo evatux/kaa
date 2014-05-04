@@ -32,6 +32,7 @@ static double   correctness_sparsity    = 0.1;
 
 typedef struct {
     const char* matr_in_file;
+    int         info_flag;
     int         fmc_flag;
     int         correctness;
     int         batch;          /* default: 0 - auto */
