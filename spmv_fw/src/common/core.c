@@ -329,6 +329,84 @@ int matrix_copy(TMatrix_CSR *src, TMatrix_CSR *dst)
     return ERROR_NO_ERROR;
 }
 
+int matrix_perm_copy(TMatrix_CSR *src, TMatrix_CSR *dst, int *perm_rows, int *perm_cols)
+{
+    int rows, cols, nonz;
+    int i;
+    int *invp_rows = NULL;
+
+    rows = dst->rows = src->rows;
+    cols = dst->cols = src->cols;
+    nonz = dst->nonz = src->nonz;
+    dst->val        = (real*)malloc(sizeof(real)*nonz);
+    dst->col_ind    = ( int*)malloc(sizeof( int)*nonz);
+    dst->row_ptr    = ( int*)malloc(sizeof( int)*(rows+1));
+
+    if (perm_rows)
+        invp_rows  = (int*)malloc(sizeof(int)*rows);
+
+    if ( NULL == dst->val || NULL == dst->col_ind || NULL == dst->row_ptr ) {
+        if (dst->val    ) free(dst->val    );
+        if (dst->col_ind) free(dst->col_ind);
+        if (dst->row_ptr) free(dst->row_ptr);
+        if (invp_rows   ) free(invp_rows   );
+
+        return DE(ERROR_MEMORY);
+    }
+
+    if (perm_rows)
+    {
+        for (i = 0; i < rows; ++i) invp_rows[perm_rows[i]] = i;
+    }
+
+    dst->row_ptr[0] = 0;
+    for (i = 0; i < rows; ++i)
+    {
+        if (perm_rows != NULL)
+        {
+            int invp_i = invp_rows[i];
+            dst->row_ptr[i+1] = dst->row_ptr[i] +
+                (src->row_ptr[invp_i+1] - src->row_ptr[invp_i]);
+
+            for (int invp_c = src->row_ptr[invp_i], c = dst->row_ptr[i];
+                     invp_c < src->row_ptr[invp_i+1]; ++invp_c, ++c)
+            {
+                dst->col_ind[c] = perm_cols ?
+                    perm_cols[src->col_ind[invp_c]] : src->col_ind[invp_c];
+                dst->val[c]     = src->val[invp_c];
+            }
+        } else
+        {
+            dst->row_ptr[i+1] = src->row_ptr[i+1];
+            for (int c = src->row_ptr[i]; c < src->row_ptr[i+1]; ++c)
+            {
+                dst->col_ind[c] = perm_cols ?
+                    perm_cols[src->col_ind[c]] : src->col_ind[c];
+                dst->val[c]     = src->val[c];
+            }
+        }
+
+        if (perm_cols != NULL)
+        {
+            for (int c = dst->row_ptr[i]; c < dst->row_ptr[i+1]; ++c)
+            {
+                int min_c = c;
+                for (int cc = c + 1; cc < dst->row_ptr[i+1]; ++cc)
+                {
+                    if (dst->col_ind[cc] < dst->col_ind[min_c])
+                        min_c = cc;
+                }
+                SWAP(dst->col_ind[c], dst->col_ind[min_c]);
+                SWAP(dst->val[c],     dst->val[min_c]);
+            }
+        }
+    }
+
+    if (invp_rows) free(invp_rows);
+
+    return ERROR_NO_ERROR;
+}
+
 int matrix_smp2csr(TMatrix_SMP *src, TMatrix_CSR *dst)
 {
     int i, j, rows, cols, nonz;

@@ -32,6 +32,7 @@ typedef float real;
 #define SGNerr ((err<0)?(-1):(1))
 #endif
 
+#define typeof __typeof__
 #define MIN2(x,y) (((x)<(y))?(x):(y))
 #define MAX2(x,y) (((x)>(y))?(x):(y))
 #define SWAP(x,y) do { typeof(x) tmp = (x); (x) = (y); (y) = tmp; } while(0)
