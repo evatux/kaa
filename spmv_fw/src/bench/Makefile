@@ -14,8 +14,6 @@ ALL_OBJS        += $(BENCH_OBJS)
 INC_DIRS        =  $(DIR.COMMON) $(DIR.SPMV) $(DIR.KERS)
 INCLUDE         =  $(addprefix -I, $(INC_DIRS))
 
-.SECONDARY:
-
 all:  $(DIR.OUT)/$(BENCH_OUT)
 
 $(DIR.BUILD)/%.o: %.c $(BENCH_DEPS)
