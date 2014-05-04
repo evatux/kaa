@@ -56,6 +56,7 @@ void vector_destroy     (TVector_SMP* /*vect*/);
 
 //  Matrix-Matrix interface
 int  matrix_copy        (TMatrix_CSR* /*src*/, TMatrix_CSR* /*dst*/);
+int  matrix_perm_copy   (TMatrix_CSR* /*src*/, TMatrix_CSR* /*dst*/, int* /*perm_rows*/, int* /*perm_cols*/);
 int  matrix_smp2csr     (TMatrix_SMP* /*src*/, TMatrix_CSR* /*dst*/);
 int  matrix_csr2smp     (TMatrix_CSR* /*src*/, TMatrix_SMP* /*dst*/);
 
