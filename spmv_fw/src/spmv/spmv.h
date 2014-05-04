@@ -49,6 +49,7 @@ static spmv_kernel_foo_t kernel_list[] = {
 
 extern const int kernel_num;
 
+const char* ker_get_opt(info_t /*info*/, const char /*c*/);
 
 //  SpMV utils
 
