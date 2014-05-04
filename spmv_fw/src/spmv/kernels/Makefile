@@ -1,6 +1,6 @@
 include ../../Makefile.config
 
-KERS            = ref ref_omp $(MKL.KERS) $(MKLNS.KERS)
+KERS            = ref ref_omp gblock_omp $(MKL.KERS) $(MKLNS.KERS)
 KERS_DEPS       = $(addsuffix .h, $(KERS))
 KERS_OBJS       = $(addprefix $(DIR.BUILD)/, $(addsuffix .o, $(KERS)))
 

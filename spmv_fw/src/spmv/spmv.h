@@ -40,7 +40,7 @@ spmv_kernel_t mkl_new_spmv();
 static spmv_kernel_foo_t kernel_list[] = {
     ref,
     ref_omp,
-//    gblock_omp,
+    gblock_omp,
 #ifdef _MKL_ENABLE
     mkl_spmv,
 #endif

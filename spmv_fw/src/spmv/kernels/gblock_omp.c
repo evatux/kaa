@@ -12,6 +12,7 @@
 #define UNSET   (-2)
 
 static double gblock_alpha = 0.1;
+static double gblock_corr_threshold = 0.5;
 
 static int  mv_omp_mul(TMatrix_CSR *matr, TVector_SMP *in, TVector_SMP *out)
 {
@@ -41,11 +42,15 @@ static int get_row_perm(TMatrix_CSR *matr, int **_row_perm)
     int nonz = matr->nonz;
 
     real alpha = gblock_alpha;
+    real corr_threshold = gblock_corr_threshold;
     real cur_alpha;
 
     int  *perm      = (int* )malloc(sizeof(int )*rows);
     real *w         = (real*)malloc(sizeof(real)*cols);
-    if (!perm || !wc_ind || !w) err = ERROR_MEMORY, goto fail;
+    if (!perm || !w) {
+        err = ERROR_MEMORY;
+        goto fail;
+    }
 
     //  init perm
     for (int k = 0; k < rows; ++k) perm[k] = UNSET;
@@ -77,7 +82,7 @@ static int get_row_perm(TMatrix_CSR *matr, int **_row_perm)
 
         perm[brow] = k;
 
-        if (corr > corr_threshold) {
+        if (bcorr > corr_threshold) {
             //  keeping history
             cur_alpha = alpha;
         } else {
@@ -89,15 +94,18 @@ static int get_row_perm(TMatrix_CSR *matr, int **_row_perm)
         for (int j = 0; j < cols; ++j)
             w[j] *= cur_alpha;
         for (int c = matr->row_ptr[brow]; c < matr->row_ptr[brow+1]; ++c)
-            w[matr->col_ind[c] - matr->row_ptr[blow]] += (1-cur_alpha)/l;
+            w[matr->col_ind[c] - matr->row_ptr[brow]] += (1-cur_alpha)/l;
     }
+
+    for (int i = 0; i < rows; ++i)
+        printf("%d ", perm[i]);
+    printf("\n");
 
     *_row_perm = perm;
     return ERROR_NO_ERROR;
 
 fail:
-    if (perm)   free(row_perm);
-    if (wr)     free(wr);
+    if (perm)   free(perm);
     if (w)      free(w);
     *_row_perm = NULL;
 
@@ -109,6 +117,17 @@ static int gblock_desc_create(gblock_desc_t **_desc, TMatrix_CSR *matr, info_t i
     int err;
     int *row_perm = NULL;
     int *col_perm = NULL;
+    const char *opt;
+
+    opt = ker_get_opt(info, 'a');
+    if (opt) gblock_alpha = atof(opt);
+
+    opt = ker_get_opt(info, 't');
+    if (opt) gblock_corr_threshold = atof(opt);
+
+    opt = ker_get_opt(info, 'y');
+    if (opt) matrix_portrait(matr,
+            (opt[0] != '\0') ? opt : "gblock_before.png");
 
     gblock_desc_t *desc = malloc(sizeof(gblock_desc_t));
     if (desc == NULL) return DE(ERROR_MEMORY);
@@ -116,11 +135,20 @@ static int gblock_desc_create(gblock_desc_t **_desc, TMatrix_CSR *matr, info_t i
     err = get_row_perm(matr, &row_perm);
     if (err) goto fail;
 
+    /*
     err = get_col_perm(matr, &col_perm);
     if (err) goto fail;
 
     err = matrix_copy_with_perm(matr, &desc->matr, row_perm, col_perm);
     if (err) goto fail;
+    */
+
+    err = matrix_perm_copy(matr, &desc->matr, row_perm, row_perm);
+    if (err) goto fail;
+
+    opt = ker_get_opt(info, 'z');
+    if (opt) matrix_portrait(&desc->matr,
+            (opt[0] != '\0') ? opt : "gblock_after.png");
 
     desc->hash = GBLOCK_OMP_HASH;
     *_desc = desc;
