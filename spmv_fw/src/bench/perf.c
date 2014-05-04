@@ -52,7 +52,7 @@ static double timer_gettimeofday(int act)
 
 static inline double timer(int act)
 {
-    timer_gettimeofday(act);
+    return timer_gettimeofday(act);
 }
 
 int perf(spmv_kernel_t *ker, info_t info, perf_t *p)
