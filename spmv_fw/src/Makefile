@@ -1,16 +1,21 @@
+include Makefile.config
+
 SUBDIRS = common spmv bench
 
 .PHONY: subdirs $(SUBDIRS)
 
-subdirs: $(SUBDIRS)
+subdirs: prepare $(SUBDIRS)
+
+prepare:
+	-mkdir -p $(DIR.BUILD)
 
 $(SUBDIRS):
 	$(MAKE) -C $@
 
-spmv:  common
-bench: common spmv
+common: prepare
+spmv:   common
+bench:  spmv
 
 clean:
-	for dir in $(SUBDIRS); do \
-		$(MAKE) -C $$dir clean; \
-	done
+	-rm -f $(DIR.BUILD)/*.o
+	-rm -f $(DIR.OUT)/bench.out

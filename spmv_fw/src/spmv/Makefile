@@ -1,37 +1,22 @@
-CC = gcc
-DEFS =
-CFLAGS = -g -std=c99
-
-ifeq ($(DEBUG),1)
-CFLAGS += -D_DEBUG
-endif
-
-ifeq ($(Wall),1)
-CFLAGS += -Wall
-endif
-
-ROOT_DIR        = ..
-COMMON_DIR      = $(ROOT_DIR)/common
-SPMV_DIR        = $(ROOT_DIR)/spmv
-KERS_DIR        = $(SPMV_DIR)/kernels
+include ../Makefile.config
 
 SPMV            = spmv
 SPMV_DEPS       = $(addsuffix .h, $(SPMV))
-SPMV_OBJS       = $(addsuffix .o, $(SPMV))
+SPMV_OBJS       = $(addprefix $(DIR.BUILD)/, $(addsuffix .o, $(SPMV)))
 
-INC_DIR         += $(COMMON_DIR) $(SPMV_DIR)
+INC_DIRS        = $(DIR.COMMON) $(DIR.SPMV)
+INCLUDE         = $(addprefix -I, $(INC_DIRS))
 
-.PHONY: $(KERS_DIR)
+.PHONY: $(DIR.KERS)
 
-all: $(SPMV_OBJS) $(KERS_DIR)
+all: $(SPMV_OBJS) $(DIR.KERS)
 
-$(KERS_DIR):
+$(DIR.KERS):
 	$(MAKE) -C $@
 
-%.o: %.c $(SPMV_DEPS)
-	$(CC) -c $< $(CFLAGS) $(DEFS) $(addprefix -I, $(INC_DIR)) -o $@
+$(DIR.BUILD)/%.o: %.c $(SPMV_DEPS)
+	$(C.COMP) -c $< -o $@ $(INCLUDE)
 
 clean:
-	$(MAKE) -C $(KERS_DIR) clean
-	-rm -f *.o
-	-rm -f *~
+	$(MAKE) -C $(DIR.KERS) clean
+	-rm -f $(SPMV_OBJS)

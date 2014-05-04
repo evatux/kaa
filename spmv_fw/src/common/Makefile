@@ -1,28 +1,16 @@
-CC = gcc
-DEFS =
-CFLAGS = -g -std=c99 $(DEFS)
-LIBS = -lm
-PNGLIBS = -lpng
-
-ifeq ($(DEBUG),1)
-CFLAGS += -D_DEBUG
-endif
-
-ifeq ($(Wall),1)
-CFLAGS += -Wall
-endif
-
-ROOT_DIR        = ..
-COMMON_DIR      = $(ROOT_DIR)/common
+include ../Makefile.config
 
 COMMON          = unit core graphics
 COMMON_DEPS     = $(addsuffix .h, $(COMMON)) common.h
-COMMON_OBJS     = $(addsuffix .o, $(COMMON))
+COMMON_OBJS     = $(addprefix $(DIR.BUILD)/, $(addsuffix .o, $(COMMON)))
+
+INC_DIRS        = $(DIR.COMMON)
+INCLUDE         = $(addprefix -I, $(INC_DIRS))
 
 all: $(COMMON_OBJS)
 
-%.o: %.c $(COMMON_DEPS)
-	$(CC) -c $< $(CFLAGS) -I$(COMMON_DIR) -o $@
+$(DIR.BUILD)/%.o: %.c $(COMMON_DEPS)
+	$(C.COMP) -c $< -o $@ $(INCLUDE)
 
 clean:
 	-rm -f *.o

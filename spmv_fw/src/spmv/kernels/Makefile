@@ -1,58 +1,19 @@
-CC = gcc
-DEFS =
-CFLAGS = -g -std=c99
-OMPFLAGS = -fopenmp
-INC_DIR =
-MKL_KERS =
-MKLNS_KERS =
+include ../../Makefile.config
 
-ifneq ($(MKL),0)
-ifndef MKLROOT
-MKLROOT  = /opt/intel/composer_xe_2013_sp1.2.144/mkl
-endif
-MKLIDIR  = $(MKLROOT)/include
-INC_DIR += $(MKLIDIR)
-MKL_KERS = mkl_spmv
-CFLAGS  += -D_MKL_ENABLE
-endif
-
-ifneq ($(MKL_NEW_SPMV),0)
-ifndef MKLNSROOT
-MKLNSROOT   = /opt/intel/composer_xe_2013_sp1.2.144/mkl
-endif
-MKLNSIDIR   = $(MKLNSROOT)/include
-INC_DIR    += $(MKLNSIDIR)
-MKLNS_KERS  = mkl_new_spmv
-CFLAGS     += -D_MKL_NEW_SPMV_ENABLE
-endif
-
-ifeq ($(DEBUG),1)
-CFLAGS += -D_DEBUG
-endif
-
-ifeq ($(Wall),1)
-CFLAGS += -Wall
-endif
-
-ROOT_DIR        = ../..
-COMMON_DIR      = $(ROOT_DIR)/common
-SPMV_DIR        = $(ROOT_DIR)/spmv
-KERS_DIR        = $(SPMV_DIR)/kernels
-
-KERS            = ref ref_omp $(MKL_KERS) $(MKLNS_KERS)
+KERS            = ref ref_omp $(MKL.KERS) $(MKLNS.KERS)
 KERS_DEPS       = $(addsuffix .h, $(KERS))
-KERS_OBJS       = $(addsuffix .o, $(KERS))
+KERS_OBJS       = $(addprefix $(DIR.BUILD)/, $(addsuffix .o, $(KERS)))
 
-INC_DIR         += $(COMMON_DIR) $(SPMV_DIR) $(KERS_DIR)
+INC_DIRS        = $(DIR.COMMON) $(DIR.SPMV) $(DIR.KERS)
+INCLUDE         = $(addprefix -I, $(INC_DIRS) $(MKL.IDIR) $(MKLNS.IDIR))
 
 all:  $(KERS_OBJS)
 
-%_omp.o: %_omp.c $(KERS_DEPS)
-	$(CC) -c $< $(OMPFLAGS) $(CFLAGS) $(DEFS) $(addprefix -I, $(INC_DIR)) -o $@
+$(DIR.BUILD)/%_omp.o: %_omp.c $(KERS_DEPS)
+	$(C.COMP.OMP) -c $< -o $@ $(INCLUDE)
 
-%.o: %.c $(KERS_DEPS)
-	$(CC) -c $< $(CFLAGS) $(DEFS) $(addprefix -I, $(INC_DIR)) -o $@
+$(DIR.BUILD)/%.o: %.c $(KERS_DEPS)
+	$(C.COMP)     -c $< -o $@ $(INCLUDE)
 
 clean:
-	-rm -f *.o
-	-rm -f *~
+	-rm -f $(KER_OBJS)
