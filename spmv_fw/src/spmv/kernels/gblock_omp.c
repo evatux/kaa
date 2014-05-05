@@ -53,7 +53,8 @@ static int get_row_perm(TMatrix_CSR *matr, int **_row_perm)
     }
 
     //  init perm
-    for (int k = 0; k < rows; ++k) perm[k] = UNSET;
+    perm[0] = 0;
+    for (int k = 1; k < rows; ++k) perm[k] = UNSET;
 
     //  init weight
     for (int j = 0; j < cols; ++j) w[j] = 0.;
@@ -74,7 +75,7 @@ static int get_row_perm(TMatrix_CSR *matr, int **_row_perm)
             real corr = 0.;
             for (int c = matr->row_ptr[i]; c < matr->row_ptr[i+1]; ++c)
                 corr += w[matr->col_ind[c]];
-            if (corr > bcorr) {
+            if (corr >= bcorr) {
                 bcorr = corr;
                 brow  = i;
             }
@@ -94,12 +95,8 @@ static int get_row_perm(TMatrix_CSR *matr, int **_row_perm)
         for (int j = 0; j < cols; ++j)
             w[j] *= cur_alpha;
         for (int c = matr->row_ptr[brow]; c < matr->row_ptr[brow+1]; ++c)
-            w[matr->col_ind[c] - matr->row_ptr[brow]] += (1-cur_alpha)/l;
+            w[matr->col_ind[c]] += (1-cur_alpha)/l;
     }
-
-    for (int i = 0; i < rows; ++i)
-        printf("%d ", perm[i]);
-    printf("\n");
 
     *_row_perm = perm;
     return ERROR_NO_ERROR;
