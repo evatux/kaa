@@ -166,6 +166,42 @@ int matrix_save(TMatrix_DCSR *matr, const char *filename)
     return ERROR_NO_ERROR;
 }
 
+int matrix_save_fmc(TMatrix_DCSR *matr, const char *filename)
+{
+    int size, nonz;
+    int i, j, ci;
+    FILE* fp = fopen(filename, "w");
+    if ( fp == NULL ) return ERROR_FILE_IO;
+
+    size = matr->size;
+    nonz = matr->nonz;
+
+    fprintf(fp, "%%%%MatrixMarket matrix coordinate real general\n");
+    fprintf(fp, "%8d %8d %16d\n", size, size, nonz+size);
+
+    for (j = 0; j < size; ++j)
+    {
+        for (i = 0; i < size; ++i)
+        {
+            if (i == j)
+            {
+                fprintf(fp, "%8d %8d %16g\n", i+1, j+1, matr->diag[i]);
+            }
+            else
+            {
+                for (ci = matr->row_ptr[i]; ci < matr->row_ptr[i+1]; ++ci)
+                    if (matr->col_ind[ci] == j) {
+                        fprintf(fp, "%8d %8d %16g\n", i+1, j+1, matr->val[ci]);
+                        break;
+                    }
+            }
+        }
+    }
+    fclose(fp);
+
+    return ERROR_NO_ERROR;
+}
+
 int matrix_save_symcompact(TMatrix_Simple *matr, const char *filename)
 {
     int size = matr->size;

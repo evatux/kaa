@@ -54,6 +54,7 @@ int  matrix_create(TMatrix_DCSR* /*matr*/, int /*size*/, int /*nonz*/, int /*cle
 int  matrix_load(TMatrix_DCSR* /*matr*/, const char* /*filename*/);
 int  matrix_load_fmc(TMatrix_DCSR* /*matr*/, const char* /*filename*/);
 int  matrix_save(TMatrix_DCSR* /*matr*/, const char* /*filename*/);
+int  matrix_save_fmc(TMatrix_DCSR* /*matr*/, const char* /*filename*/);
 int  matrix_save_symcompact(TMatrix_Simple* /*matr*/, const char* /*filename*/);
 int  matrix_portrait(TMatrix_DCSR* /*matr*/, const char* /*filename*/, real /*threshold*/, int /*neps*/, int* /*neps_list*/);
 int  matrix_portrait_unite(TMatrix_DCSR* /*A*/, TMatrix_DCSR* /*LD*/, const char* /*filename*/, real /*threshold*/, int /*neps*/, int* /*neps_list*/);
