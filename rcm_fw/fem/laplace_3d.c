@@ -55,6 +55,7 @@ int loc_off(int c0, int c1)
     do { if (IS_UNSET(x)) (x) = (y); } while(0)
 
 #define DEC(x) (--(*x))
+#define IN_RANGE(b,e,x0,x1,x2) (b[0]<=x0&&x0<=e[0]&&b[1]<=x1&&x1<=e[1]&&b[2]<=x2&&x2<=e[2])
 
 void create_index_nd(int *ind, int n, int *last, int b[DIM], int e[DIM])
 {
@@ -63,15 +64,20 @@ void create_index_nd(int *ind, int n, int *last, int b[DIM], int e[DIM])
 
     int c0, c1, c2, cc;
 
+#if 0
+    if (IN_RANGE(b,e,0,0,1))
+        printf("(%d - %d, %d - %d, %d - %d)\n", b[0], e[0], b[1], e[1], b[2], e[2]);
+#endif
+
     for (cc = 0; cc < DIM; ++cc)
-        if (b[cc] > e[cc]) return;
+        if (b[cc] >= e[cc]) return;
 
     int m[DIM], i[DIM];
     for (int c = 0; c < DIM; ++c)
         m[c] = (b[c] + e[c])/2;
 
     // dim 0
-    X[m[0]][m[1]][m[2]] = DEC(last);
+    SET_IF_UNSET(X[m[0]][m[1]][m[2]], DEC(last));
 
     // dim 1
     for (c0 = 0; c0 < DIM; ++c0)
@@ -105,11 +111,11 @@ void create_index_nd(int *ind, int n, int *last, int b[DIM], int e[DIM])
                 int bn[DIM] = {
                     bm[c0][0] + c0,
                     bm[c1][1] + c1,
-                    bm[c2][2] + c2 };
+                    bm[c2][2] + c2};
                 int en[DIM] = {
-                    me[c0][0] - (1-c0),
-                    me[c1][1] - (1-c1),
-                    me[c2][2] - (1-c2) };
+                    me[c0][0],
+                    me[c1][1],
+                    me[c2][2]};
                 create_index_nd(ind, n, last, bn, en);
             }
 }
