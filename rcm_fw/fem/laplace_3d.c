@@ -120,12 +120,93 @@ void create_index_nd(int *ind, int n, int *last, int b[DIM], int e[DIM])
             }
 }
 
+void create_index_qr(int *ind, int n, int *last, int b[DIM], int e[DIM])
+{
+    typedef int (*ind_t)[n][n];
+    ind_t X = (ind_t)ind;
+
+    int c0, c1, c2, cc;
+
+#if 0
+    if (IN_RANGE(b,e,0,0,1))
+        printf("(%d - %d, %d - %d, %d - %d)\n", b[0], e[0], b[1], e[1], b[2], e[2]);
+#endif
+
+    for (cc = 0; cc < DIM; ++cc)
+        if (b[cc] >= e[cc]) return;
+
+    int m[DIM], i[DIM], p[DIM];
+    int dir, thin;
+    for (int c = 0; c < DIM; ++c)
+        m[c] = (b[c] + e[c])/2;
+
+    // dim 0
+    SET_IF_UNSET(X[m[0]][m[1]][m[2]], DEC(last));
+
+    // dim 1
+    for (c0 = 0; c0 < DIM; ++c0)
+    {
+        for (cc = 0; cc < DIM; ++cc)
+            if (cc != c0) i[cc] = m[cc];
+
+        for (i[c0] = b[c0]; i[c0] < e[c0]; ++i[c0])
+            SET_IF_UNSET(X[i[0]][i[1]][i[2]], DEC(last));
+    }
+
+    for (thin = 0; thin <= 1; ++thin)
+    {
+        // dim 2
+        for (c0 = 0; c0 < DIM; ++c0)
+            for (c1 = c0+1; c1 < DIM; ++c1)
+            {
+                for (cc = 0; cc < DIM; ++cc)
+                    if (cc != c0 && cc != c1) dir = cc;
+                i[dir] = m[dir];
+
+                for (i[c0] = b[c0]; i[c0] < e[c0]; ++i[c0])
+                    for (i[c1] = b[c1]; i[c1] < e[c1]; ++i[c1])
+                    {
+                        if (thin == 0) {
+                            SET_IF_UNSET(X[i[0]][i[1]][i[2]], DEC(last));
+                        } else {
+                            p[0] = p[1] = p[2] = 0;
+                            p[dir] = 1;
+                            if (i[0]+p[0] <  e[0]) SET_IF_UNSET(X[i[0]+p[0]][i[1]][i[2]], DEC(last));
+                            if (i[0]-p[0] >= b[0]) SET_IF_UNSET(X[i[0]-p[0]][i[1]][i[2]], DEC(last));
+                            if (i[1]+p[1] <  e[1]) SET_IF_UNSET(X[i[0]][i[1]+p[1]][i[2]], DEC(last));
+                            if (i[1]-p[1] >= b[1]) SET_IF_UNSET(X[i[0]][i[1]-p[1]][i[2]], DEC(last));
+                            if (i[2]+p[2] <  e[2]) SET_IF_UNSET(X[i[0]][i[1]][i[2]+p[2]], DEC(last));
+                            if (i[2]-p[2] >= b[2]) SET_IF_UNSET(X[i[0]][i[1]][i[2]-p[2]], DEC(last));
+                        }
+                    }
+            }
+    }
+
+    // the other :)
+    int *bm[2] = { b, m };
+    int *me[2] = { m, e };
+    for (c0 = 0; c0 < 2; ++c0)
+        for (c1 = 0; c1 < 2; ++c1)
+            for (c2 = 0; c2 < 2; ++c2)
+            {
+                int bn[DIM] = {
+                    bm[c0][0] + c0,
+                    bm[c1][1] + c1,
+                    bm[c2][2] + c2};
+                int en[DIM] = {
+                    me[c0][0],
+                    me[c1][1],
+                    me[c2][2]};
+                create_index_qr(ind, n, last, bn, en);
+            }
+}
+
 void create_index(int type, int *ind, int n, int last, int b[DIM], int e[DIM])
 {
     switch(type) {
         case T_NAT: break;
         case T_ND: create_index_nd(ind, n, &last, b, e); break;
-//        case T_QR: create_index_qr(ind, n, &last, b, e); break;
+        case T_QR: create_index_qr(ind, n, &last, b, e); break;
         default: fprintf(stderr, "wrong type\n"); exit(-2);
     }
 }
@@ -262,7 +343,7 @@ int main(int argc, char **argv)
     matrix_destroy(m);
 
     if (pict_fname) matrix_portrait(l3, pict_fname, 20., 0, NULL);
-    matrix_save(l3, matr_fname);
+    matrix_save_fmc(l3, matr_fname);
 
     return 0;
 }
