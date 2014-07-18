@@ -66,6 +66,8 @@ void matrix_simp_show(TMatrix_Simple* /*matr*/);
 void matrix_show     (TMatrix_DCSR*   /*matr*/, int /*flag_ordered*/);
 void graph_show      (TWGraph* /*gr*/);
 
+int  graph_portrait(TWGraph* /*gr*/, const char* /*filename*/);
+
 void matrix_simp_destroy(TMatrix_Simple* /*matr*/);
 void matrix_destroy     (TMatrix_DCSR*   /*matr*/);
 void graph_destroy      (TWGraph*        /*gr  */);

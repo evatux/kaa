@@ -391,6 +391,14 @@ void graph_show(TWGraph *gr)
     printf("\n============\n");
 }
 
+int  graph_portrait(TWGraph *gr, const char *filename)
+{
+#ifndef CONFIG_DISABLE_GRAPHICS
+    return make_graph_portrait(gr, filename);
+#endif
+    return ERROR_UNIMPLEMENTED;
+}
+
 void matrix_simp_destroy(TMatrix_Simple *matr)
 {
     if (!matr) return;

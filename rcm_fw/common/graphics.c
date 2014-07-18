@@ -150,6 +150,44 @@ static void put_point(pixel_t *pixel, int color, double hue)
 //      external subroutines
 // =============================================
 
+int make_graph_portrait(TWGraph *gr, const char *filename)
+{
+    bitmap_t portrait;
+    pixel_t *pixel;
+    int x, y;
+    int size;
+
+    size = (gr->size > MAX_PNG_SIZE) ? MAX_PNG_SIZE : gr->size;
+    portrait.width  = size;
+    portrait.height = size;
+
+    portrait.pixels = (pixel_t*) malloc(sizeof(pixel_t) * portrait.width * portrait.height);
+
+    for (y = 0; y < portrait.height; y++) {
+        for (x = 0; x < portrait.width; x++) {
+            put_point(pixel_at(&portrait, x, y), CL_WHITE, 1);
+        }
+    }
+
+    int i, j, k;
+    int color;
+    int ci = 0;
+
+    // first draw non-diagonal matrix elements
+    for (i = 0; i < gr->size; ++i)
+    {
+        for (ci = gr->xadj[i]; ci < gr->xadj[i+1]; ci++)
+        {
+            put_point(matrix_pixel_at(&portrait, i, gr->adjncy[ci], gr->size), CL_BLACK, 1.);
+        }
+        put_point(matrix_pixel_at(&portrait, i, i, gr->size), CL_BLACK, 1);
+    }
+
+    if (save_png_to_file (&portrait, filename) != 0) return ERROR_GRAPHICS;
+
+    return ERROR_NO_ERROR;
+}
+
 int make_matrix_portrait_with_neps(TMatrix_DCSR *matr, const char *filename, real threshold, int neps, int* neps_list)
 {
     bitmap_t portrait;
