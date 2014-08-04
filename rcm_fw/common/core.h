@@ -14,6 +14,7 @@ typedef struct {
     int *adjncy;
     int *xadj;
     int size;
+    int nonz;
 } TGraph;
 
 typedef struct {
