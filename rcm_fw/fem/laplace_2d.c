@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 
 #include "common.h"
 #include "core.h"
@@ -97,7 +98,8 @@ int main(int argc, char **argv)
     matrix_destroy(m);
 
     if (pict_fname) matrix_portrait(l2, pict_fname, 5., 0, NULL);
-    matrix_save(l2, matr_fname);
+    if (strstr(matr_fname, ".mtx") != NULL) matrix_save_fmc(l2, matr_fname);
+    else matrix_save(l2, matr_fname);
 
     return 0;
 }
